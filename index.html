@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VVD Pijnacker-Nootdorp · Stemgedrag per stembureau</title>
+<link rel="icon" href="assets/vvd-logo.png">
+<link rel="stylesheet" href="vendor/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
+<link rel="stylesheet" href="style.css?v=20260706">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <img class="logo" src="assets/vvd-logo.png" alt="VVD" width="46" height="46">
+    <div>
+      <h1>Stemgedrag per stembureau.</h1>
+      <p>Pijnacker-Nootdorp · landelijk · provinciaal · gemeentelijk</p>
+    </div>
+  </div>
+  <div class="controls">
+    <label>Verkiezing
+      <select id="sel-verkiezing"></select>
+    </label>
+    <label>Kaart toont
+      <select id="sel-metric">
+        <option value="perc">VVD-% (gekozen verkiezing)</option>
+        <option value="afwijking">Afwijking t.o.v. gemeentegemiddelde</option>
+        <option value="meerwaarde">Lokale meerwaarde (gemeente − landelijk)</option>
+        <option value="winst">Winst/verlies t.o.v. vorige keer</option>
+        <option value="vsgrootste">VVD t.o.v. grootste partij (voorsprong/achterstand)</option>
+        <option value="vspartij">VVD t.o.v. gekozen partij</option>
+        <option value="opkomst">Opkomst per stembureau (indicatief — drukte)</option>
+        <option value="kandidaat">Aandeel VVD-kandidaat (waar is kandidaat sterk)</option>
+      </select>
+    </label>
+    <label id="lbl-partij" hidden>Vergelijk partij
+      <select id="sel-partij"></select>
+    </label>
+    <label id="lbl-kandidaat" hidden>VVD-kandidaat
+      <select id="sel-kandidaat"></select>
+    </label>
+    <label>Weergave
+      <span class="seg" id="weergave-toggle">
+        <button type="button" data-w="gebieden" class="actief">Vlakken</button>
+        <button type="button" data-w="kernen">Kernen</button>
+        <button type="button" data-w="stippen">Stippen</button>
+      </span>
+    </label>
+    <fieldset id="niveau-filter">
+      <legend>Toon niveaus</legend>
+      <label><input type="checkbox" value="EP" checked> Europees</label>
+      <label><input type="checkbox" value="TK" checked> Landelijk</label>
+      <label><input type="checkbox" value="PS" checked> Provincie</label>
+      <label><input type="checkbox" value="GR" checked> Gemeente</label>
+    </fieldset>
+  </div>
+</header>
+
+<main>
+  <section class="panel map-panel">
+    <div id="map"></div>
+    <div id="legend" class="legend"></div>
+  </section>
+
+  <aside class="panel side">
+    <div class="card" id="summary">
+      <h2>Samenvatting</h2>
+      <div id="summary-body">—</div>
+    </div>
+    <div class="card" id="kern-card">
+      <h2 id="kern-title">Per kern</h2>
+      <div id="kern-body"></div>
+    </div>
+    <div class="card" id="movers-card" hidden>
+      <h2 id="movers-title">Stijgers &amp; dalers</h2>
+      <div id="movers-body"></div>
+    </div>
+    <div class="card">
+      <h2 id="chart-title">Klik een stembureau</h2>
+      <canvas id="chart" height="190"></canvas>
+      <p class="hint">Klik een stip op de kaart of een rij in de tabel.</p>
+    </div>
+    <div class="card" id="partijen-card" hidden>
+      <h2 id="partijen-title">Partijen hier</h2>
+      <div id="partijen-body"></div>
+    </div>
+    <div class="card" id="kandidaat-card" hidden>
+      <h2 id="kandidaat-title">VVD-kandidaten</h2>
+      <div id="kandidaat-body"></div>
+    </div>
+  </aside>
+</main>
+
+<section class="panel table-panel">
+  <div class="table-head">
+    <h2>VVD per stembureau — aantallen &amp; percentages</h2>
+    <button id="btn-csv">⭳ Download CSV</button>
+  </div>
+  <div class="table-wrap">
+    <table id="tabel"></table>
+  </div>
+  <footer class="bron">
+    Bron: officiële uitslagen Kiesraad via <a href="https://data.overheid.nl" target="_blank" rel="noopener">data.overheid.nl</a>
+    (EML-bestanden, per stembureau). Coördinaten: PDOK Locatieserver.
+    Percentage = VVD-stemmen ÷ geldige stemmen. Mobiele/brief-/telstembureaus staan wel in de tabel maar niet op de kaart.
+    Een <b>–</b> in de tabel betekent: geen uitslag voor die locatie bij die verkiezing (stembureau bestond toen niet of telde niet mee) — beweeg eroverheen voor uitleg.
+    <span id="meta-info"></span>
+    <label class="detail-toggle">Kaartdetail
+      <select id="sel-detail" title="Licht = sneller laden (minder kaartpunten). Auto kiest licht op mobiel/trage verbinding.">
+        <option value="auto">Auto</option>
+        <option value="vol">Vol</option>
+        <option value="licht">Licht</option>
+      </select>
+    </label>
+  </footer>
+</section>
+
+<footer class="credit">
+  Gemaakt door <a href="https://www.rubenbeuker.nl" target="_blank" rel="noopener">Ruben Beuker</a> · © 2026 · www.rubenbeuker.nl
+</footer>
+
+<script src="vendor/leaflet.js" integrity="sha384-MqBTuoPK56hXSXu+CBGieY4+YmVJ9nPtRptTkiuNSz3t1YCzASShUH1ex3Rgcf2u" crossorigin="anonymous"></script>
+<script src="vendor/chart.umd.min.js" integrity="sha384-gfXUqR5vZoGaSWfnt7sdtbok7tYQpPWuRu+iOZgEc+cZmK90gnHyalBH/o7aTyiw" crossorigin="anonymous"></script>
+<script src="data/stembureaus.js"></script>
+<script src="data/uitslagen.js"></script>
+<script src="data/kandidaten.js"></script>
+<script src="data/meta.js"></script>
+<script>
+/* #15 — kies de basiskaart vóór het laden: licht bestand (~4 MB) op mobiel / databesparing /
+   trage verbinding, vol bestand (~8 MB) op de rest. Handmatige override in localStorage. */
+(function () {
+  var pref = localStorage.getItem("kaartdetail") || "auto";
+  var c = navigator.connection || {};
+  var autoLicht = !!c.saveData || /(^|-)[23]g$/.test(c.effectiveType || "") ||
+                  matchMedia("(max-width:860px)").matches;
+  var licht = pref === "licht" || (pref === "auto" && autoLicht);
+  var v = (typeof META !== "undefined" && META.bijgewerkt) ? "?v=" + META.bijgewerkt : "";
+  document.write('<script src="data/basemap' + (licht ? ".lite" : "") + '.js' + v + '"><\/script>');
+})();
+</script>
+<script src="data/gebieden.js"></script>
+<!-- ?v bumpen bij redeploy zodat browsers verse app.js/style.css laden (GitHub Pages cachet) -->
+<script src="app.js?v=20260706"></script>
+</body>
+</html>
