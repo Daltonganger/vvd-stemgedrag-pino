@@ -1,6 +1,2 @@
 .DS_Store
 **/.DS_Store
-
-# Gelicentieerd VVD-lettertype Aeonik — niet publiek redistribueren.
-# Site valt automatisch terug op Arial (font-family stack + font-display:swap).
-font/*.ttf
