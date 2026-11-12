@@ -15,14 +15,20 @@ UA = {"User-Agent": "VVD-PijnackerNootdorp-partijposities/1.0"}
 # CHES-afkorting -> party-veld in de CHES-csv (country 10 = Nederland)
 CHES_KEY = {"VVD": "VVD", "CDA": "CDA", "D66": "D66", "PVV": "PVV", "PVD A": "PvdA",
             "GL": "GL", "SP": "SP", "PVDD": "PvdD", "CU": "CU", "SGP": "SGP",
-            "DENK": "DENK", "VOLT": "Volt", "NSC": "NSC", "BBB": "BBB", "FVD": "FvD"}
+            "DENK": "DENK", "VOLT": "Volt", "NSC": "NSC", "BBB": "BBB", "FVD": "FvD",
+            "50PLUS": "50PLUS"}
 # EML-partijnaam (genormaliseerd) -> CHES-afkorting(en); lijst = gemiddelde (fusielijsten)
 ALIAS = {
     "VVD": ["VVD"],
+    # EP-verkiezingen gebruiken de Europese lijstnaam i.p.v. de korte partijnaam
+    "VVD - EUROPESE LIBERAAL-DEMOCRATEN": ["VVD"],
     "CDA": ["CDA"], "CDA - EUROPESE VOLKSPARTIJ": ["CDA"],
+    "CHRISTEN DEMOCRATISCH APPÈL (CDA)": ["CDA"],
     "D66": ["D66"], "DEMOCRATEN 66 (D66)": ["D66"],
+    "DEMOCRATEN 66 (D66) - ALDE": ["D66"],
     "PVV (PARTIJ VOOR DE VRIJHEID)": ["PVV"],
     "PARTIJ VAN DE ARBEID (P.V.D.A.)": ["PVD A"],
+    "P.V.D.A./EUROPESE SOCIAALDEMOCRATEN": ["PVD A"],
     "GROENLINKS": ["GL"],
     "GROENLINKS / PARTIJ VAN DE ARBEID (PVDA)": ["GL", "PVD A"],
     "PROGRESSIEF PN/P.V.D.A/GROENLINKS": ["GL", "PVD A"],
@@ -38,6 +44,7 @@ ALIAS = {
     "BBB": ["BBB"],
     "FORUM VOOR DEMOCRATIE": ["FVD"],
     "JA21": ["JA21"],
+    "50PLUS": ["50PLUS"],
 }
 EXTRA = {"JA21": 8.8}   # ParlGov left_right 2023 (niet in CHES 2024)
 

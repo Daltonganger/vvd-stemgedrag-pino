@@ -136,7 +136,10 @@ for (const e of ELECTIONS) {
       if (lr != null) { som += v * lr; gedekt += v; }
     }
   }
-  gemPositie[e.id] = gedekt ? { score: som / gedekt, dekking: null } : null;
+  // dekking = aandeel van alle geldige stemmen in de gemeente dat een score heeft
+  let totaalGeldig = 0;
+  for (const s of STEMBUREAUS) { const u = getU(s.id, e.id); if (u && u.geldig) totaalGeldig += u.geldig; }
+  gemPositie[e.id] = gedekt ? { score: som / gedekt, dekking: totaalGeldig ? (100 * gedekt) / totaalGeldig : 0 } : null;
 }
 
 /* ---------------- state ---------------- */
@@ -650,6 +653,14 @@ function leesHash() {
   if (["gebieden", "kernen", "stippen"].includes(h.get("w"))) weergave = h.get("w");
   if (h.get("sb") && sbById.has(h.get("sb"))) geselecteerd = h.get("sb");
 }
+// zet de besturingselementen op de state die leesHash() heeft hersteld
+function pasBesturingToe() {
+  const sv = document.getElementById("sel-verkiezing");
+  if (sv && sv.querySelector(`option[value="${huidige}"]`)) sv.value = huidige;
+  const sm = document.getElementById("sel-metric");
+  if (sm && sm.querySelector(`option[value="${metric}"]`)) sm.value = metric;
+  document.querySelectorAll("#weergave-toggle button").forEach((x) => x.classList.toggle("actief", x.dataset.w === weergave));
+}
 function schrijfHash() {
   const h = new URLSearchParams({ v: huidige, m: metric, w: weergave, ...(geselecteerd ? { sb: geselecteerd } : {}) });
   history.replaceState(null, "", "#" + h.toString());
@@ -749,7 +760,7 @@ const presVragen = () => {
     { k: "1 · Waar staan we sterk?", big: `${g.pct.toFixed(1)}%`, sub: `VVD-gemiddelde ${e.label} in Pijnacker-Nootdorp — ${g.vvd.toLocaleString("nl")} van ${g.geldig.toLocaleString("nl")} geldige stemmen (${g.n} stembureaus).`, lijst: top.map((x) => `<li><b>${x.p.toFixed(1)}%</b> — ${x.s.naam}</li>`).join("") },
     { k: "2 · Waar verliezen we?", big: dalers.length ? `${dalers[0].d.toFixed(1)} pp` : "—", sub: `Grootste dalers bij ${e.label} t.o.v. vorige keer (zelfde niveau)${pr ? ` (’${String(ELECTIONS.find((x) => x.id === pr).jaar).slice(2)})` : ""}:`, lijst: dalers.map((x) => `<li><b>${x.d > 0 ? "+" : ""}${x.d.toFixed(1)} pp</b> — ${x.s.naam}</li>`).join("") || "<li>geen dalers</li>" },
     { k: "3 · Lokale meerwaarde", big: mwLijst.length ? `+${mwLijst[0].m.toFixed(1)} pp` : "—", sub: `Stembureaus waar de VVD óók in de gemeente beter scoort dan landelijk (${LAATSTE_GR.label} vs ${LAATSTE_TK.label}):`, lijst: mwLijst.slice(0, 3).map((x) => `<li><b>+${x.m.toFixed(1)} pp</b> — ${x.s.naam}</li>`).join("") },
-    { k: "4 · Positie & trend", big: gp ? `${gp.score.toFixed(1)}/10` : "—", sub: `Gemiddelde politieke positie van de gemeente bij ${e.label} (links 0 ↔ rechts 10, dekking ${gp ? gp.dekking.toFixed(0) : "?"}%). Trend per niveau:`, lijst: trend.map((t) => `<li>${t}</li>`).join("") },
+    { k: "4 · Positie & trend", big: gp ? `${gp.score.toFixed(1)}/10` : "—", sub: `Gemiddelde politieke positie van de gemeente bij ${e.label} (links 0 ↔ rechts 10, dekking ${gp && gp.dekking != null ? gp.dekking.toFixed(0) + "%" : "onbekend"}). Trend per niveau:`, lijst: trend.map((t) => `<li>${t}</li>`).join("") },
   ];
 };
 let presIdx = 0, presOpen = false, presFocusTerug = null;
@@ -804,19 +815,23 @@ let herteken = function () { vulPartijKeuze(); vulKandidaatKeuze(); tekenKaart()
   leesHash();                                   // #9: gedeelde link herstelt weergave
   const sv = document.getElementById("sel-verkiezing");
   sv.innerHTML = ELECTIONS.map((e) => `<option value="${e.id}" ${e.id === huidige ? "selected" : ""}>${e.label}</option>`).join("");
+  pasBesturingToe();                            // dropdowns/segment-knoppen op de herstelde state
+  toonKeuzes();
   sv.addEventListener("change", () => {
     huidige = sv.value;
     // bij een verkiezing-gebaseerde sorteerkolom: naar de nieuwe verkiezing; naam/meerwaarde/positie blijven
     if (sort.key !== "naam" && sort.key !== "meerwaarde" && sort.key !== "positie") sort.key = huidige;
     herteken();
   });
-  document.getElementById("sel-metric").addEventListener("change", (e) => { metric = e.target.value; toonKeuzes(); tekenKaart(); });
-  document.getElementById("sel-partij").addEventListener("change", (e) => { vergelijkPartij = e.target.value; tekenKaart(); });
-  document.getElementById("sel-kandidaat").addEventListener("change", (e) => { kiesKandidaat = e.target.value; tekenKaart(); tekenKandidaten(); });
+  // #9: elke weergave-wijziging moet óók in de permalink-hash belanden
+  document.getElementById("sel-metric").addEventListener("change", (e) => { metric = e.target.value; toonKeuzes(); tekenKaart(); schrijfHash(); });
+  document.getElementById("sel-partij").addEventListener("change", (e) => { vergelijkPartij = e.target.value; tekenKaart(); schrijfHash(); });
+  document.getElementById("sel-kandidaat").addEventListener("change", (e) => { kiesKandidaat = e.target.value; tekenKaart(); tekenKandidaten(); schrijfHash(); });
   document.querySelectorAll("#weergave-toggle button").forEach((b) => b.addEventListener("click", () => {
     weergave = b.dataset.w;
     document.querySelectorAll("#weergave-toggle button").forEach((x) => x.classList.toggle("actief", x === b));
     tekenKaart();
+    schrijfHash();
   }));
   document.querySelectorAll("#niveau-filter input").forEach((cb) => cb.addEventListener("change", () => {
     zichtbaar = new Set([...document.querySelectorAll("#niveau-filter input:checked")].map((x) => x.value));
@@ -861,4 +876,6 @@ let herteken = function () { vulPartijKeuze(); vulKandidaatKeuze(); tekenKaart()
       ` · Laatst bijgewerkt: ${META.bijgewerkt} · integriteitscheck: <b style="color:${ok ? "#1e8449" : "#c0392b"}">${ok ? `✓ ${nG}/${nT} verified tegen officiële totalen` : META.controle}</b>`;
   }
   herteken();
+  // #9: kwam de selectie uit de permalink? Dan meteen grafiek + partijen tonen.
+  if (geselecteerd) selecteer(geselecteerd);
 })();
