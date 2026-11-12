@@ -334,40 +334,40 @@ const STEMBUREAUS = [
   "id": "42",
   "naam": "CulturA",
   "postcode": "",
-  "lat": 52.04757,
-  "lon": 4.38925,
+  "lat": 52.04267,
+  "lon": 4.39361,
   "mobiel": false
  },
  {
   "id": "43",
   "naam": "Infocentrum Keijzershof",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.00445,
+  "lon": 4.44276,
   "mobiel": false
  },
  {
   "id": "44",
   "naam": "Kantine Meersma BV",
   "postcode": "",
-  "lat": 52.01965,
-  "lon": 4.43916,
+  "lat": 52.00984,
+  "lon": 4.44463,
   "mobiel": false
  },
  {
   "id": "45",
   "naam": "Sociaal Cultureel centrum",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.01882,
+  "lon": 4.43221,
   "mobiel": false
  },
  {
   "id": "46",
   "naam": "Gemeentelijk servicepunt",
   "postcode": "",
-  "lat": 52.04757,
-  "lon": 4.38925,
+  "lat": 52.01882,
+  "lon": 4.43221,
   "mobiel": false
  },
  {
@@ -382,16 +382,16 @@ const STEMBUREAUS = [
   "id": "48",
   "naam": "Hoofdgebouw Stichting Ipse",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.05165,
+  "lon": 4.40453,
   "mobiel": false
  },
  {
   "id": "49",
   "naam": "Infocentrum Tolhek",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.0098,
+  "lon": 4.45115,
   "mobiel": false
  },
  {
@@ -406,16 +406,16 @@ const STEMBUREAUS = [
   "id": "51",
   "naam": "Soc cult centrum",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.01882,
+  "lon": 4.43221,
   "mobiel": false
  },
  {
   "id": "52",
   "naam": "Sportzaal",
   "postcode": "",
-  "lat": 52.04757,
-  "lon": 4.38925,
+  "lat": 52.0098,
+  "lon": 4.45115,
   "mobiel": false
  },
  {
@@ -430,24 +430,24 @@ const STEMBUREAUS = [
   "id": "54",
   "naam": "Wooncentrum",
   "postcode": "",
-  "lat": 52.04757,
-  "lon": 4.38925,
+  "lat": 52.01264,
+  "lon": 4.43597,
   "mobiel": false
  },
  {
   "id": "55",
   "naam": "t Hofland",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.01264,
+  "lon": 4.43597,
   "mobiel": false
  },
  {
   "id": "56",
   "naam": "t Prinsesje",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.02232,
+  "lon": 4.43201,
   "mobiel": false
  },
  {
@@ -462,8 +462,8 @@ const STEMBUREAUS = [
   "id": "58",
   "naam": "Sportcomplex de Viergang",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.02606,
+  "lon": 4.42237,
   "mobiel": false
  }
 ];
