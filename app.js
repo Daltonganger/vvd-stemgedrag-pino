@@ -1,147 +1,4 @@
 "use strict";
-/* VVD Pijnacker-Nootdorp — stemgedrag per stembureau.
-   Alle afgeleide cijfers (%, gemiddelden, afwijkingen) komen uit UITSLAGEN/STEMBUREAUS. */
-
-const NIVEAU = { EP: "Europees", TK: "Landelijk", PS: "Provincie", GR: "Gemeente" };
-const NIVEAU_ORDER = ["EP", "TK", "PS", "GR"];
-const KLEUR_NIVEAU = { EP: "#2E7BD6", TK: "#0A2CCA", PS: "#5b6470", GR: "#FF6400" };  // Europees lichtblauw / VVD blauw / grijs / oranje
-
-const eid = (u) => u.soort + u.jaar;
-const sbById = new Map(STEMBUREAUS.map((s) => [s.id, s]));
-
-// index: "sb|TK2023" -> {vvd, geldig}
-const idx = new Map();
-for (const u of UITSLAGEN) idx.set(u.sb + "|" + eid(u), u);
-const getU = (sb, e) => idx.get(sb + "|" + e) || null;
-const pct = (u) => (u && u.geldig ? (100 * u.vvd) / u.geldig : null);
-const pctOf = (sb, e) => pct(getU(sb, e));
-
-// verkiezingen, gesorteerd op niveau-volgorde dan jaar
-const ELECTIONS = [...new Set(UITSLAGEN.map(eid))]
-  .map((e) => ({ id: e, soort: e.slice(0, 2), jaar: +e.slice(2), label: NIVEAU[e.slice(0, 2)] + " " + e.slice(2) }))
-  .sort((a, b) => NIVEAU_ORDER.indexOf(a.soort) - NIVEAU_ORDER.indexOf(b.soort) || a.jaar - b.jaar);
-
-const latestOf = (soort) => ELECTIONS.filter((e) => e.soort === soort).slice(-1)[0];
-const prevSameSoort = (e) => {
-  const same = ELECTIONS.filter((x) => x.soort === e.soort && x.jaar < e.jaar);
-  return same.length ? same[same.length - 1].id : null;
-};
-const LAATSTE_GR = latestOf("GR"), LAATSTE_TK = latestOf("TK");
-
-// gemeente-totalen per verkiezing: VVD%, opkomst en partij-aggregaat
-const gemAvg = {};
-for (const e of ELECTIONS) {
-  let v = 0, g = 0, ub = 0, kg = 0, n = 0;
-  const partijen = new Map();
-  for (const s of STEMBUREAUS) {
-    const u = getU(s.id, e.id);
-    if (!u) continue;
-    n++; v += u.vvd; g += u.geldig; ub += u.uitgebracht || 0; kg += u.kiesg || 0;
-    for (const [naam, votes] of u.partijen || []) partijen.set(naam, (partijen.get(naam) || 0) + votes);
-  }
-  const top = [...partijen.entries()].sort((a, b) => b[1] - a[1]);
-  gemAvg[e.id] = { vvd: v, geldig: g, pct: g ? (100 * v) / g : null, n,
-    opkomst: kg ? (100 * ub) / kg : null, uitgebracht: ub, kiesg: kg, top };
-}
-
-// ---- #6: aggregatie naar kern (Pijnacker / Nootdorp / Delfgauw) o.b.v. postcode ----
-const KERN_PC = { "2631": "Nootdorp", "2632": "Nootdorp", "2645": "Delfgauw" };
-function kernVan(s) {
-  if (!s || !s.postcode) return null;
-  const p4 = s.postcode.slice(0, 4);
-  return KERN_PC[p4] || (/^264[123]$/.test(p4) ? "Pijnacker" : null);
-}
-const KERNEN = ["Pijnacker", "Nootdorp", "Delfgauw"];
-const kernId = (k) => "K:" + k;
-const kernCentroid = {};
-// kern-pseudostembureaus in idx + sbById zetten -> alle bestaande functies werken ook voor kernen
-for (const k of KERNEN) {
-  const leden = STEMBUREAUS.filter((s) => !s.mobiel && s.lat && kernVan(s) === k);
-  const lat = leden.reduce((a, s) => a + s.lat, 0) / (leden.length || 1);
-  const lon = leden.reduce((a, s) => a + s.lon, 0) / (leden.length || 1);
-  kernCentroid[k] = [lat, lon];
-  sbById.set(kernId(k), { id: kernId(k), naam: k + " (hele kern)", lat, lon, mobiel: false, kern: true });
-  for (const e of ELECTIONS) {
-    let v = 0, g = 0, ub = 0, kg = 0, heeft = false;
-    const partijen = new Map(), vk = new Map();
-    for (const s of leden) {
-      const u = getU(s.id, e.id); if (!u) continue;
-      heeft = true; v += u.vvd; g += u.geldig; ub += u.uitgebracht || 0; kg += u.kiesg || 0;
-      for (const [naam, votes] of u.partijen || []) partijen.set(naam, (partijen.get(naam) || 0) + votes);
-      for (const [nr, votes] of u.vk || []) vk.set(nr, (vk.get(nr) || 0) + votes);
-    }
-    if (heeft) idx.set(kernId(k) + "|" + e.id, {
-      sb: kernId(k), soort: e.soort, jaar: e.jaar, vvd: v, geldig: g, uitgebracht: ub, kiesg: kg,
-      partijen: [...partijen.entries()].sort((a, b) => b[1] - a[1]),
-      vk: [...vk.entries()].sort((a, b) => b[1] - a[1]),
-    });
-  }
-}
-
-// is deze partijnaam de VVD?
-const isVVD = (naam) => naam.trim().toUpperCase().startsWith("VVD");
-
-// VVD-marge t.o.v. grootste partij: + = VVD is grootste (voorsprong op nr.2), − = achterstand op nr.1
-function vvdMarge(sb, e) {
-  const u = getU(sb, e);
-  if (!u || !u.geldig || !u.partijen.length) return null;
-  const p = u.partijen; // al gesorteerd hoog->laag
-  const ref = isVVD(p[0][0]) ? (p[1] ? p[1][1] : 0) : p[0][1];
-  return (100 * (u.vvd - ref)) / u.geldig;
-}
-// grootste partij (naam) bij een stembureau-verkiezing
-const winnaar = (sb, e) => { const u = getU(sb, e); return u && u.partijen.length ? u.partijen[0][0] : null; };
-// stemmen van een specifieke partij bij een stembureau-verkiezing
-const partyVotes = (u, naam) => { const f = (u.partijen || []).find((p) => p[0] === naam); return f ? f[1] : 0; };
-// opkomst-% per stembureau (indicatief: kiezers zijn niet aan hun bureau gebonden)
-function opkomstPct(sb, e) { const u = getU(sb, e); return u && u.kiesg ? (100 * u.uitgebracht) / u.kiesg : null; }
-
-// ---- #12: VVD-kandidaten (voorkeurstemmen) ----
-const kandidaatNaam = (e, nr) => (typeof KANDIDATEN !== "undefined" && KANDIDATEN[e] && KANDIDATEN[e][nr]) || ("kandidaat " + nr);
-const heeftKandidaten = (e) => typeof KANDIDATEN !== "undefined" && KANDIDATEN[e] && Object.keys(KANDIDATEN[e]).length > 0;
-const vkVotes = (u, nr) => { const f = (u && u.vk || []).find((x) => x[0] === nr); return f ? f[1] : 0; };
-// aandeel van een kandidaat binnen de VVD-stemmen op deze plek (waar is de kandidaat sterk?)
-function kandidaatAandeel(sb, e, nr) { const u = getU(sb, e); return u && u.vvd ? (100 * vkVotes(u, nr)) / u.vvd : null; }
-
-// lokale meerwaarde = laatste gemeente% − laatste landelijk%
-const meerwaarde = (sb) => {
-  const a = pctOf(sb, LAATSTE_GR.id), b = pctOf(sb, LAATSTE_TK.id);
-  return a == null || b == null ? null : a - b;
-};
-
-// ---- #18: links/rechts-positie per stembureau (CHES 2024 lrgen, 0=links t/m 10=rechts) ----
-const LR = typeof PARTIJEN_LR !== "undefined" ? PARTIJEN_LR : {};
-const lrVan = (naam) => LR[naam.toUpperCase().replace(/\s+/g, " ").trim()];
-// gewogen gemiddelde lrgen over partijen met bekende score; dekking = aandeel stemmen met score
-function positie(sb, e) {
-  const u = getU(sb, e);
-  if (!u || !u.geldig) return null;
-  let som = 0, gedekt = 0;
-  for (const [naam, v] of u.partijen || []) {
-    const lr = lrVan(naam);
-    if (lr != null) { som += v * lr; gedekt += v; }
-  }
-  if (!gedekt) return null;
-  return { score: som / gedekt, dekking: (100 * gedekt) / u.geldig };
-}
-// gemeente-gemiddelde positie per verkiezing (gewogen over geldige stemmen met score)
-const gemPositie = {};
-for (const e of ELECTIONS) {
-  let som = 0, gedekt = 0;
-  for (const s of STEMBUREAUS) {
-    const u = getU(s.id, e.id);
-    if (!u || !u.geldig) continue;
-    for (const [naam, v] of u.partijen || []) {
-      const lr = lrVan(naam);
-      if (lr != null) { som += v * lr; gedekt += v; }
-    }
-  }
-  // dekking = aandeel van alle geldige stemmen in de gemeente dat een score heeft
-  let totaalGeldig = 0;
-  for (const s of STEMBUREAUS) { const u = getU(s.id, e.id); if (u && u.geldig) totaalGeldig += u.geldig; }
-  gemPositie[e.id] = gedekt ? { score: som / gedekt, dekking: totaalGeldig ? (100 * gedekt) / totaalGeldig : 0 } : null;
-}
-
 /* ---------------- state ---------------- */
 let huidige = (latestOf("GR") || ELECTIONS[ELECTIONS.length - 1]).id;
 let metric = "perc";
@@ -182,14 +39,16 @@ function metricLabel() {
   return document.querySelector("#sel-metric").selectedOptions[0].text;
 }
 
+function positieKleur(val) {
+  if (val == null) return "#bbbbbb";
+  const t = Math.max(0, Math.min(1, val / 10));
+  return t < 0.5 ? mix("#6a51a3", "#eeeeee", t * 2) : mix("#eeeeee", "#FF6400", (t - 0.5) * 2);
+}
+
 function colorFor(val, lo, hi, maxAbs) {
   if (val == null) return "#bbbbbb";
   if (isDiverging()) return div(maxAbs ? val / maxAbs : 0);
-  if (metric === POSITIE_METRIC) {
-    // links (0, paars/links) -> midden (5, grijs) -> rechts (10, VVD-oranje); symmetrisch rond 5
-    const t = Math.max(0, Math.min(1, (val - 0) / 10));
-    return t < 0.5 ? mix("#6a51a3", "#eeeeee", t * 2) : mix("#eeeeee", "#FF6400", (t - 0.5) * 2);
-  }
+  if (metric === POSITIE_METRIC) return positieKleur(val);
   return seq(hi > lo ? (val - lo) / (hi - lo) : 0.5);
 }
 
@@ -255,15 +114,20 @@ function popupHtml(s) {
 // doel-id van een gebied: in kernen-weergave de kern, anders het stembureau zelf
 const celDoel = (c) => weergave === "kernen" ? kernId(kernVan(sbById.get(c.sb))) : c.sb;
 
+function kaartSchaal() {
+  const ids = weergave === "stippen"
+    ? mapbare.filter((s) => getU(s.id, huidige)).map((s) => s.id)
+    : cellen().map(celDoel);
+  const vals = ids.map(metricValue).filter((v) => v != null && Number.isFinite(v));
+  return { lo: vals.length ? Math.min(...vals) : null, hi: vals.length ? Math.max(...vals) : null,
+    maxAbs: Math.max(...vals.map(Math.abs), 0.001) };
+}
+
 function tekenKaart() {
   const cells = cellen();
-  const actief = mapbare.filter((s) => getU(s.id, huidige));   // alleen bureaus die in deze verkiezing bestonden
-  const vlakkenView = weergave === "gebieden" || weergave === "kernen";
-  // schaal bepalen op basis van de actieve weergave
-  const waarden = vlakkenView ? cells.map((c) => metricValue(celDoel(c))) : actief.map((s) => metricValue(s.id));
-  const vals = waarden.filter((v) => v != null);
-  const lo = Math.min(...vals), hi = Math.max(...vals);
-  const maxAbs = Math.max(...vals.map((v) => Math.abs(v)), 0.001);
+  const actief = mapbare.filter((s) => getU(s.id, huidige));
+  const vlakkenView = weergave !== "stippen";
+  const { lo, hi, maxAbs } = kaartSchaal();
 
   // ----- stippen (alleen actieve bureaus van deze verkiezing) -----
   markerLaag.clearLayers();
@@ -282,7 +146,7 @@ function tekenKaart() {
       m.addTo(markerLaag);
       // #8/#4: patroon bij ELKE teken-ronde opnieuw zetten (markers worden gecachet,
       // dus een class die alleen bij creatie gezet wordt blijft hangen bij metric-wissel)
-      zetPatroon(m, val, true);
+      zetStipPatroon(m, val);
     }
   }
 
@@ -300,7 +164,10 @@ function tekenKaart() {
       gebiedVanSb.set(popupDoel, pol);
       pol.addTo(gebiedLaag);
       // #8/#4: patroon bij elke teken-ronde opnieuw zetten
-      zetPatroon(pol, val, false);
+      if (isDiverging() && val != null) {
+        L.polygon(latlngs, { stroke: false, fillOpacity: 1, interactive: false,
+          className: val >= 0 ? "patroon-pos" : "patroon-neg" }).addTo(gebiedLaag);
+      }
     }
   }
 
@@ -312,6 +179,7 @@ function tekenKaart() {
 function tekenLegend(lo, hi, maxAbs) {
   const el = document.getElementById("legend");
   const titel = metricLabel();
+  if (lo == null) { el.innerHTML = `<b>${titel}</b><p>Geen gegevens voor deze keuze.</p>`; return; }
   let grad, links, rechts;
   if (metric === POSITIE_METRIC) {
     grad = `linear-gradient(90deg, ${colorFor(0)}, ${colorFor(5)}, ${colorFor(10)})`;
@@ -341,13 +209,13 @@ function tekenSamenvatting() {
     : "—";
   const opkomstTxt = g.opkomst != null ? g.opkomst.toFixed(1) + "%" : "onbekend";
   const gp = gemPositie[huidige];
-  const positieTxt = gp ? `${gp.score.toFixed(1)} / 10` : "—";
+  const positieTxt = gp ? `${gp.score.toFixed(1)} / 10 · dekking ${gp.dekking.toFixed(0)}%` : "—";
   document.getElementById("summary-body").innerHTML = `
     <div class="big">${g.pct.toFixed(1)}%</div>
     <div style="font-size:.8rem;color:var(--grijs);margin:.1rem 0 .5rem">VVD-gemiddelde ${e.label}${vvdRang ? ` · ${vvdRang}e partij` : ""} · ${g.vvd.toLocaleString("nl")} van ${g.geldig.toLocaleString("nl")} geldige stemmen · ${g.n} stembureaus</div>
     <div class="row"><span>Opkomst (gemeente)</span><span>${opkomstTxt}</span></div>
     <div class="row"><span>Grootste partij</span><span>${grootsteTxt}</span></div>
-    <div class="row"><span>Gem. positie gemeente (links↔rechts)</span><span>${positieTxt}</span></div>
+    <div class="row"><span>Index gemeente (vaste partijposities)</span><span>${positieTxt}</span></div>
     <div class="row"><span>VVD hoogste</span><span>${hoog.s.naam} · ${hoog.p.toFixed(1)}%</span></div>
     <div class="row"><span>VVD laagste</span><span>${laag.s.naam} · ${laag.p.toFixed(1)}%</span></div>`;
 }
@@ -365,8 +233,11 @@ function tekenKernOverzicht() {
         <span class="kn">${r.k}</span>
         <span class="kmeter"><i style="width:${(100 * r.p / maxP).toFixed(0)}%"></i></span>
         <span class="kp">${r.p.toFixed(1)}%</span></div>
-      <div class="ksub">grootste: ${win ? win[0] : "—"} · opkomst ${r.u.kiesg ? (100 * r.u.uitgebracht / r.u.kiesg).toFixed(0) + "%" : "?"} · ${r.u.geldig.toLocaleString("nl")} geldige stemmen</div>`;
+      <div class="ksub">grootste: ${win ? win[0] : "—"} · opkomst ${opkomstPct(kernId(r.k), huidige) != null ? opkomstPct(kernId(r.k), huidige).toFixed(0) + "% (indicatief)" : "onbekend"} · ${r.u.geldig.toLocaleString("nl")} geldige stemmen</div>`;
   }).join("") || "<p class='hint'>geen kerngegevens</p>";
+  const ingedeeld = rows.reduce((sum, row) => sum + row.u.geldig, 0);
+  const totaal = gemAvg[huidige].geldig;
+  document.getElementById("kern-body").innerHTML += `<p class="hint">Ingedeeld: ${ingedeeld.toLocaleString("nl")} van ${totaal.toLocaleString("nl")} stemmen (${(100 * ingedeeld / totaal).toFixed(1)}%). Mobiele en briefstemmen blijven buiten de kernen.</p>`;
   document.querySelectorAll("#kern-body .kernrow").forEach((r) => r.addEventListener("click", () => selecteer(r.dataset.sb)));
 }
 
@@ -381,24 +252,12 @@ function tekenPositieOverzicht() {
       const t = Math.max(0, Math.min(1, r.g.score / 10));
       return `<div class="posrow"><span class="pl">${r.e.label}</span>` +
         `<span class="posmeter"><i style="left:${(t * 100).toFixed(1)}%"></i></span>` +
-        `<b>${r.g.score.toFixed(1)}</b></div>`;
+        `<span class="poswaarde"><b>${r.g.score.toFixed(1)}</b><small>dekking ${r.g.dekking.toFixed(0)}%</small></span></div>`;
     }).join("") + `</div>`;
   };
   const niveau = (soort) => ELECTIONS.filter((e) => e.soort === soort).map((e) => e.id);
-  // alles-samen: gewogen over alle verkiezingen heen
-  let som = 0, gedekt = 0;
-  for (const s of STEMBUREAUS) for (const e of ELECTIONS) {
-    const u = getU(s.id, e.id);
-    if (!u || !u.geldig) continue;
-    for (const [naam, v] of u.partijen || []) { const lr = lrVan(naam); if (lr != null) { som += v * lr; gedekt += v; } }
-  }
-  const allesScore = gedekt ? som / gedekt : null;
-  const allesBlok = allesScore != null
-    ? `<div class="posblok"><div class="poskop">Alle ${ELECTIONS.length} verkiezingen samen</div>` +
-      `<div class="posrow"><span class="pl">Totaal</span><span class="posmeter"><i style="left:${(Math.max(0, Math.min(1, allesScore / 10)) * 100).toFixed(1)}%"></i></span><b>${allesScore.toFixed(1)}</b></div></div>`
-    : "";
   body.innerHTML = blok("Europees", niveau("EP")) + blok("Landelijk", niveau("TK")) +
-    blok("Provinciaal", niveau("PS")) + blok("Gemeentelijk", niveau("GR")) + allesBlok +
+    blok("Provinciaal", niveau("PS")) + blok("Gemeentelijk", niveau("GR")) +
     `<div class="posas"><span>0 links</span><span>5</span><span>10 rechts</span></div>`;
 }
 
@@ -463,7 +322,7 @@ function tekenTabel() {
     const mwCell = mw == null ? `<td class="leeg" title="Lokale meerwaarde niet te berekenen: geen gemeente- én landelijke uitslag voor deze locatie.">–</td>` : `<td class="pct" style="background:${div(mw / 12)}">${mw > 0 ? "+" : ""}${mw.toFixed(1)}</td>`;
     const p = positie(s.id, huidige);
     const posCell = p == null ? `<td class="leeg" title="Geen positie te berekenen: geen uitslag of geen enkele partij met bekende links/rechts-score.">–</td>`
-      : `<td class="pct" style="background:${colorFor(p.score, 0, 10, 0)}" title="Gewogen links/rechts-positie (CHES 2024) · dekking ${p.dekking.toFixed(0)}% van de stemmen">${p.score.toFixed(1)}</td>`;
+      : `<td class="pct" style="background:${positieKleur(p.score)}" title="Gewogen links/rechts-positie (CHES 2024) · dekking ${p.dekking.toFixed(0)}% van de stemmen">${p.score.toFixed(1)}</td>`;
     return `<tr data-sb="${s.id}" tabindex="0" aria-selected="${s.id === geselecteerd}" class="${s.mobiel ? "mobiel" : ""} ${s.id === geselecteerd ? "sel" : ""}">
       <th scope="row">${s.naam}</th>${cells}${mwCell}${posCell}</tr>`;
   }).join("");
@@ -498,21 +357,25 @@ function tekenGrafiek() {
   titelEl.textContent = s.naam;
   const data = ELECTIONS.map((e) => pctOf(s.id, e.id));
   const posData = ELECTIONS.map((e) => { const p = positie(s.id, e.id); return p ? p.score : null; });
+  const positieLijnen = NIVEAU_ORDER.map((niveau) => ({
+    label: "Index (L↔R)", data: ELECTIONS.map((e, i) => e.soort === niveau ? posData[i] : null),
+    type: "line", borderColor: "#6a51a3", backgroundColor: "#6a51a3", borderWidth: 2,
+    pointRadius: 3, yAxisID: "y2", spanGaps: true,
+  }));
   const cfg = {
     type: "bar",
     data: {
       labels: ELECTIONS.map((e) => e.label.replace("Europees", "EP").replace("Landelijk", "TK").replace("Provincie", "PS").replace("Gemeente", "GR")),
       datasets: [
         { label: "VVD %", data, backgroundColor: ELECTIONS.map((e) => KLEUR_NIVEAU[e.soort]), yAxisID: "y" },
-        { label: "Positie (L↔R)", data: posData, type: "line", borderColor: "#6a51a3", backgroundColor: "#6a51a3",
-          borderWidth: 2, pointRadius: 3, yAxisID: "y2", spanGaps: true },
+        ...positieLijnen,
       ],
     },
     options: {
-      plugins: { legend: { display: true, position: "top", labels: { boxWidth: 12, font: { size: 10 } } },
+      plugins: { legend: { display: true, position: "top", labels: { boxWidth: 12, font: { size: 10 }, filter: (item) => item.datasetIndex <= 1 } },
         tooltip: { callbacks: { label: (c) => {
           const e = ELECTIONS[c.dataIndex], u = getU(s.id, e.id);
-          if (c.datasetIndex === 1) { const p = positie(s.id, e.id); return p ? `${e.label}: positie ${p.score.toFixed(1)}/10 (dekking ${p.dekking.toFixed(0)}%)` : e.label + ": —"; }
+          if (c.datasetIndex > 0) { const p = positie(s.id, e.id); return p ? `${e.label}: positie ${p.score.toFixed(1)}/10 (dekking ${p.dekking.toFixed(0)}%)` : e.label + ": —"; }
           return u ? `${e.label}: ${pct(u).toFixed(1)}% (${u.vvd}/${u.geldig})` : e.label + ": —"; } } } },
       scales: {
         y: { ticks: { callback: (v) => v + "%" }, beginAtZero: true, title: { display: true, text: "VVD %" } },
@@ -533,8 +396,8 @@ function tekenPartijen() {
   document.getElementById("partijen-title").textContent =
     `Partijen — ${sbById.get(geselecteerd).naam} (${e.label})`;
   const maxV = u.partijen[0][1];
-  const opk = u.kiesg ? ` · ${u.uitgebracht} uitgebracht (opkomst ${opkomstPct(geselecteerd, huidige).toFixed(0)}%, indicatief)` : "";
-  const rij = u.partijen.slice(0, 8).map(([naam, v], i) => {
+  const opk = opkomstPct(geselecteerd, huidige) != null ? ` · ${u.uitgebracht} uitgebracht (opkomst ${opkomstPct(geselecteerd, huidige).toFixed(0)}%, indicatief)` : "";
+  const rij = u.partijen.map(([naam, v], i) => {
     const vvd = isVVD(naam);
     return `<div class="pbar ${vvd ? "vvd" : ""}">
       <span class="prang">${i + 1}</span>
@@ -569,7 +432,7 @@ function tekenKandidaten() {
   document.querySelectorAll("#kandidaat-body .kbar").forEach((r) => r.addEventListener("click", () => {
     kiesKandidaat = r.dataset.nr; metric = "kandidaat";
     document.getElementById("sel-metric").value = "kandidaat";
-    toonKeuzes(); vulKandidaatKeuze(); tekenKaart(); tekenKandidaten();
+    toonKeuzes(); vulKandidaatKeuze(); tekenKaart(); tekenKandidaten(); schrijfHash();
   }));
 }
 
@@ -577,9 +440,12 @@ function tekenKandidaten() {
 function selecteer(sb) {
   geselecteerd = sb;
   schrijfHash();                              // #9: selectie zit in de deelbare link
-  document.querySelectorAll("#tabel tbody tr").forEach((tr) => tr.classList.toggle("sel", tr.dataset.sb === sb));
+  document.querySelectorAll("#tabel tbody tr").forEach((tr) => {
+    tr.classList.toggle("sel", tr.dataset.sb === sb);
+    tr.setAttribute("aria-selected", String(tr.dataset.sb === sb));
+  });
   const s = sbById.get(sb);
-  if (weergave === "gebieden") { const p = gebiedVanSb.get(sb); if (p) { map.panTo(p.getBounds().getCenter()); p.openPopup(); } }
+  if (weergave !== "stippen") { const p = gebiedVanSb.get(sb); if (p) { map.panTo(p.getBounds().getCenter()); p.openPopup(); } }
   else if (s.lat && markers.get(sb)) { map.panTo([s.lat, s.lon]); markers.get(sb).openPopup(); }
   tekenGrafiek();
   tekenPartijen();
@@ -606,7 +472,7 @@ function downloadCsv() {
       const u = getU(s.id, e.id);
       if (!u) return ["", "", "", "", "", "", ""];
       const p = positie(s.id, e.id);
-      return [u.vvd, u.geldig, pct(u).toFixed(1), u.uitgebracht || "", winnaar(s.id, e.id) || "",
+      return [u.vvd, u.geldig, pct(u).toFixed(1), u.uitgebracht ?? "", winnaar(s.id, e.id) || "",
         p ? p.score.toFixed(2) : "", p ? p.dekking.toFixed(0) : ""];
     });
     const mw = meerwaarde(s.id);
@@ -640,37 +506,39 @@ function voegPatronenToe() {
   document.getElementById("map").appendChild(svg);
 }
 voegPatronenToe();
-// #8: in tekenKaart — divergente metrics krijgen een patroon-klasse (werkt ook in grijswaarden)
-const patroonKlasse = (val) => isDiverging() && val != null ? (val >= 0 ? "patroon-pos" : "patroon-neg") : "";
-// #4: patroon moet bij ELKE teken-ronde opnieuw gezet worden, niet alleen bij creatie.
-// Leaflet-lagen worden gecachet/hergebruikt, dus een class die bij creatie is toegevoegd
-// blijft staan als de metric later niet-divergent wordt (en omgekeerd).
-function zetPatroon(laag, val, isStip) {
-  const suffix = isStip ? "-stip" : "";
-  const wil = patroonKlasse(val);
-  const alle = ["patroon-pos", "patroon-neg"].map((k) => k + suffix);
-  const toepassen = () => {
-    const el = laag.getElement && laag.getElement();
-    if (!el || !el.classList) return;
-    el.classList.remove(...alle);
-    if (wil) el.classList.add(wil + suffix);
-  };
-  toepassen();                       // meteen, als het element er al is
-  laag.off("add", laag._patroonHerkans);   // oude handler opruimen
-  laag._patroonHerkans = toepassen;        // pas toe zodra het element in de DOM staat
-  laag.on("add", laag._patroonHerkans);
+// Alleen stippen worden hergebruikt. Hun randpatroon moet bij iedere wijziging mee.
+function zetStipPatroon(laag, val) {
+  function toepassen() {
+    const el = laag.getElement();
+    if (!el) return;
+    el.classList.remove("patroon-pos-stip", "patroon-neg-stip");
+    if (isDiverging() && val != null) el.classList.add(val >= 0 ? "patroon-pos-stip" : "patroon-neg-stip");
+  }
+  toepassen();
+  if (laag._patroonHerkans) laag.off("add", laag._patroonHerkans);
+  laag._patroonHerkans = toepassen;
+  laag.on("add", toepassen);
 }
 
 /* ---------------- #9: permalink (URL-hash) ---------------- */
 function leesHash() {
+  const vorige = huidige;
   const h = new URLSearchParams(location.hash.slice(1));
   if (h.get("v") && ELECTIONS.some((e) => e.id === h.get("v"))) huidige = h.get("v");
-  if (h.get("m") && document.querySelector(`#sel-metric option[value="${h.get("m")}"]`)) metric = h.get("m");
+  if (sort.key === vorige) sort.key = huidige;
+  if ([...document.querySelectorAll("#sel-metric option")].some((o) => o.value === h.get("m"))) metric = h.get("m");
   if (["gebieden", "kernen", "stippen"].includes(h.get("w"))) weergave = h.get("w");
-  if (h.get("sb") && sbById.has(h.get("sb"))) geselecteerd = h.get("sb");
+  geselecteerd = sbById.has(h.get("sb")) ? h.get("sb") : null;
+  vergelijkPartij = h.get("partij");
+  kiesKandidaat = h.get("kandidaat");
+  if (h.has("n")) {
+    const niveaus = h.get("n").split(",").filter((n) => NIVEAU_ORDER.includes(n));
+    zichtbaar = new Set(niveaus.length ? niveaus : NIVEAU_ORDER);
+  }
 }
 // zet de besturingselementen op de state die leesHash() heeft hersteld
 function pasBesturingToe() {
+  document.querySelectorAll("#niveau-filter input").forEach((cb) => cb.checked = zichtbaar.has(cb.value));
   const sv = document.getElementById("sel-verkiezing");
   if (sv && sv.querySelector(`option[value="${huidige}"]`)) sv.value = huidige;
   const sm = document.getElementById("sel-metric");
@@ -678,131 +546,14 @@ function pasBesturingToe() {
   document.querySelectorAll("#weergave-toggle button").forEach((x) => x.classList.toggle("actief", x.dataset.w === weergave));
 }
 function schrijfHash() {
-  const h = new URLSearchParams({ v: huidige, m: metric, w: weergave, ...(geselecteerd ? { sb: geselecteerd } : {}) });
+  const h = new URLSearchParams({ v: huidige, m: metric, w: weergave, n: [...zichtbaar].join(",") });
+  if (geselecteerd) h.set("sb", geselecteerd);
+  if (metric === "vspartij" && vergelijkPartij) h.set("partij", vergelijkPartij);
+  if (metric === "kandidaat" && kiesKandidaat) h.set("kandidaat", kiesKandidaat);
   history.replaceState(null, "", "#" + h.toString());
 }
 
-/* ---------------- #9: kaart exporteren als PNG (zelf getekend, geen library) ---------------- */
-function exporteerPng() {
-  const W = 1600, H = 1100, pad = 40;
-  const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
-  const ctx = cv.getContext("2d");
-  // projectie op huidige kaart-bounds
-  const b = map.getBounds(), spanLat = b.getNorth() - b.getSouth(), spanLon = b.getEast() - b.getWest();
-  const sc = Math.min((W - 2 * pad) / spanLon, (H - 2 * pad - 60) / spanLat);
-  const cx = (W) / 2 - ((b.getEast() + b.getWest()) / 2) * sc, cy = (H - 60) / 2 + ((b.getNorth() + b.getSouth()) / 2) * sc;
-  const X = (lon) => lon * sc + cx, Y = (lat) => -lat * sc + cy;
-  const tekenPolys = (data, style) => {
-    if (!data) return;
-    ctx.beginPath();
-    for (const f of data.features) {
-      const g = f.geometry;
-      const polys = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
-      for (const poly of polys) for (const ring of poly) {
-        ring.forEach(([lon, lat], i) => i ? ctx.lineTo(X(lon), Y(lat)) : ctx.moveTo(X(lon), Y(lat)));
-      }
-    }
-    Object.assign(ctx, style); ctx.fill();
-  };
-  // achtergrond + basemap (zelfde volgorde/kleuren als tekenBasiskaart)
-  ctx.fillStyle = "#f4f3ee"; ctx.fillRect(0, 0, W, H);
-  tekenPolys(BASEMAP.green, { fillStyle: "#dbe8cf" });
-  tekenPolys(BASEMAP.water, { fillStyle: "#c4dde6" });
-  ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.4;
-  const tekenLijnen = (data, w, dash) => {
-    if (!data) return;
-    ctx.lineWidth = w; ctx.setLineDash(dash || []);
-    for (const f of data.features) {
-      const g = f.geometry, coords = g.type === "LineString" ? [g.coordinates] : g.type === "MultiLineString" ? g.coordinates : [];
-      for (const line of coords) { ctx.beginPath(); line.forEach(([lon, lat], i) => i ? ctx.lineTo(X(lon), Y(lat)) : ctx.moveTo(X(lon), Y(lat))); ctx.stroke(); }
-    }
-    ctx.setLineDash([]);
-  };
-  tekenLijnen(BASEMAP.paths, 0.8, [2, 3]);
-  tekenLijnen(BASEMAP.roads_minor, 1.2);
-  tekenLijnen(BASEMAP.rail, 1.3, [5, 4]);
-  tekenLijnen(BASEMAP.roads_major, 2.6);
-  // verkiezingsvlakken (zelfde kleuren als op scherm)
-  const cells = cellen();
-  const waarden = cells.map((c) => metricValue(celDoel(c))).filter((v) => v != null);
-  const lo = Math.min(...waarden), hi = Math.max(...waarden), maxAbs = Math.max(...waarden.map(Math.abs), 0.001);
-  const pat = (val) => { // canvas-patroon voor divergente vlakken (#8)
-    if (!isDiverging() || val == null) return null;
-    const p = document.createElement("canvas"); p.width = p.height = 7;
-    const pc = p.getContext("2d"); pc.strokeStyle = "rgba(255,255,255,.5)"; pc.lineWidth = 3;
-    pc.beginPath(); if (val >= 0) { pc.moveTo(-2, 9); pc.lineTo(9, -2); } else { pc.moveTo(-2, -2); pc.lineTo(9, 9); } pc.stroke();
-    return ctx.createPattern(p, "repeat");
-  };
-  for (const c of cells) {
-    const val = metricValue(celDoel(c));
-    const kleur = colorFor(val, lo, hi, maxAbs);
-    ctx.beginPath();
-    for (const poly of c.polys) for (const ring of poly) ring.forEach(([lon, lat], i) => i ? ctx.lineTo(X(lon), Y(lat)) : ctx.moveTo(X(lon), Y(lat)));
-    ctx.fillStyle = kleur; ctx.globalAlpha = val == null ? 0.5 : 0.8; ctx.fill(); ctx.globalAlpha = 1;
-    const p = pat(val); if (p) { ctx.fillStyle = p; ctx.fill(); }
-    ctx.strokeStyle = "#fff"; ctx.lineWidth = 1; ctx.stroke();
-  }
-  // titelbalk
-  ctx.fillStyle = "#0A2CCA"; ctx.fillRect(0, H - 52, W, 52);
-  ctx.fillStyle = "#fff"; ctx.font = "700 22px Arial"; ctx.textAlign = "left";
-  const e = ELECTIONS.find((x) => x.id === huidige);
-  ctx.fillText(`VVD Pijnacker-Nootdorp — ${e.label} — ${metricLabel()}`, pad, H - 17);
-  ctx.font = "14px Arial"; ctx.textAlign = "right";
-  ctx.fillText(`${META ? "data t/m " + META.bijgewerkt : ""} · vvd-stemgedrag-pino`, W - pad, H - 17);
-  const a = document.createElement("a");
-  a.download = `vvd-kaart-${huidige}-${metric}.png`;
-  a.href = cv.toDataURL("image/png"); a.click();
-  meld(`Kaart geëxporteerd als ${a.download}`);
-}
 function meld(t) { const l = document.getElementById("live"); l.textContent = ""; requestAnimationFrame(() => l.textContent = t); }
-
-/* ---------------- #11: presentatiemodus ---------------- */
-const presVragen = () => {
-  const e = ELECTIONS.find((x) => x.id === huidige), g = gemAvg[huidige];
-  const lijst = STEMBUREAUS.map((s) => ({ s, p: pctOf(s.id, huidige) })).filter((x) => x.p != null).sort((a, b) => b.p - a.p);
-  const top = lijst.slice(0, 3);
-  const pr = prevSameSoort(e);
-  const dalers = pr ? STEMBUREAUS.filter((s) => !s.mobiel).map((s) => {
-    const a = pctOf(s.id, huidige), b = pctOf(s.id, pr);
-    return a == null || b == null ? null : { s, d: a - b };
-  }).filter(Boolean).sort((x, y) => x.d - y.d).slice(0, 3) : [];
-  const mwLijst = STEMBUREAUS.map((s) => ({ s, m: meerwaarde(s.id) })).filter((x) => x.m != null).sort((a, b) => b.m - a.m);
-  const gp = gemPositie[huidige];
-  const trend = NIVEAU_ORDER.map((n) => {
-    const els = ELECTIONS.filter((x) => x.soort === n).slice(-2);
-    return els.length === 2 ? `${NIVEAU[n]} ’${String(els[0].jaar).slice(2)}→’${String(els[1].jaar).slice(2)}: ${gemAvg[els[0].id].pct.toFixed(1)}% → ${gemAvg[els[1].id].pct.toFixed(1)}%` : null;
-  }).filter(Boolean);
-  return [
-    { k: "1 · Waar staan we sterk?", big: `${g.pct.toFixed(1)}%`, sub: `VVD-gemiddelde ${e.label} in Pijnacker-Nootdorp — ${g.vvd.toLocaleString("nl")} van ${g.geldig.toLocaleString("nl")} geldige stemmen (${g.n} stembureaus).`, lijst: top.map((x) => `<li><b>${x.p.toFixed(1)}%</b> — ${x.s.naam}</li>`).join("") },
-    { k: "2 · Waar verliezen we?", big: dalers.length ? `${dalers[0].d.toFixed(1)} pp` : "—", sub: `Grootste dalers bij ${e.label} t.o.v. vorige keer (zelfde niveau)${pr ? ` (’${String(ELECTIONS.find((x) => x.id === pr).jaar).slice(2)})` : ""}:`, lijst: dalers.map((x) => `<li><b>${x.d > 0 ? "+" : ""}${x.d.toFixed(1)} pp</b> — ${x.s.naam}</li>`).join("") || "<li>geen dalers</li>" },
-    { k: "3 · Lokale meerwaarde", big: mwLijst.length ? `+${mwLijst[0].m.toFixed(1)} pp` : "—", sub: `Stembureaus waar de VVD óók in de gemeente beter scoort dan landelijk (${LAATSTE_GR.label} vs ${LAATSTE_TK.label}):`, lijst: mwLijst.slice(0, 3).map((x) => `<li><b>+${x.m.toFixed(1)} pp</b> — ${x.s.naam}</li>`).join("") },
-    { k: "4 · Positie & trend", big: gp ? `${gp.score.toFixed(1)}/10` : "—", sub: `Gemiddelde politieke positie van de gemeente bij ${e.label} (links 0 ↔ rechts 10, dekking ${gp && gp.dekking != null ? gp.dekking.toFixed(0) + "%" : "onbekend"}). Trend per niveau:`, lijst: trend.map((t) => `<li>${t}</li>`).join("") },
-  ];
-};
-let presIdx = 0, presOpen = false, presFocusTerug = null;
-function toonPresSlide() {
-  const slides = presVragen();
-  presIdx = Math.max(0, Math.min(slides.length - 1, presIdx));
-  const s = slides[presIdx];
-  document.getElementById("pres-slide").innerHTML =
-    `<div class="pres-kicker">${s.k}</div><div class="pres-big">${s.big}</div>` +
-    `<div class="pres-sub">${s.sub}</div>` + (s.lijst ? `<ul class="pres-lijst">${s.lijst}</ul>` : "");
-  document.getElementById("pres-teller").textContent = `${presIdx + 1} / ${slides.length}`;
-  meld(`Scherm ${presIdx + 1} van ${slides.length}: ${s.k}`);
-}
-function openPres() {
-  presOpen = true; presIdx = 0; presFocusTerug = document.activeElement;
-  document.getElementById("presentatie").hidden = false;
-  document.body.classList.add("pres-open");
-  toonPresSlide();
-  document.getElementById("pres-next").focus();
-}
-function sluitPres() {
-  presOpen = false;
-  document.getElementById("presentatie").hidden = true;
-  document.body.classList.remove("pres-open");
-  if (presFocusTerug) presFocusTerug.focus();
-}
 
 /* ---------------- init ---------------- */
 // vul de partij-dropdown met de partijen van de gekozen verkiezing (zonder VVD)
@@ -852,7 +603,7 @@ let herteken = function () { vulPartijKeuze(); vulKandidaatKeuze(); tekenKaart()
   document.querySelectorAll("#niveau-filter input").forEach((cb) => cb.addEventListener("change", () => {
     zichtbaar = new Set([...document.querySelectorAll("#niveau-filter input:checked")].map((x) => x.value));
     if (zichtbaar.size === 0) { cb.checked = true; zichtbaar.add(cb.value); }
-    tekenTabel();
+    tekenTabel(); schrijfHash();
   }));
   document.getElementById("btn-csv").addEventListener("click", downloadCsv);
   document.getElementById("btn-csv-partijen").addEventListener("click", downloadCsvPartijen);
@@ -872,16 +623,21 @@ let herteken = function () { vulPartijKeuze(); vulKandidaatKeuze(); tekenKaart()
   document.getElementById("pres-prev").addEventListener("click", () => { presIdx--; toonPresSlide(); });
   document.addEventListener("keydown", (e) => {
     if (!presOpen) return;
-    if (e.key === "Escape") sluitPres();
+    if (e.key === "Tab") {
+      const buttons = [...document.querySelectorAll("#presentatie button")];
+      const at = buttons.indexOf(document.activeElement);
+      buttons[(at + (e.shiftKey ? -1 : 1) + buttons.length) % buttons.length].focus();
+      e.preventDefault();
+    } else if (e.key === "Escape") sluitPres();
     else if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); presIdx++; toonPresSlide(); }
     else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); presIdx--; toonPresSlide(); }
   });
   // (herteken schrijft zelf al de hash — zie definitie hierboven)
   const selDetail = document.getElementById("sel-detail");
   if (selDetail) {                                  // #15 — kaartdetail (vol/licht) onthouden
-    selDetail.value = localStorage.getItem("kaartdetail") || "auto";
+    try { selDetail.value = localStorage.getItem("kaartdetail") || "auto"; } catch (e) { selDetail.value = "auto"; }
     selDetail.addEventListener("change", () => {
-      localStorage.setItem("kaartdetail", selDetail.value);
+      try { localStorage.setItem("kaartdetail", selDetail.value); } catch (e) { meld("Kaartvoorkeur kan niet worden opgeslagen."); return; }
       location.reload();                            // ander basemap-bestand laden
     });
   }
@@ -891,11 +647,15 @@ let herteken = function () { vulPartijKeuze(); vulKandidaatKeuze(); tekenKaart()
     // Eerlijk over de bron: bij de meeste verkiezingen is het referentietotaal afgeleid uit
     // dezelfde gemeentetelling, dus dit vangt parse-fouten — niet of de bron zelf klopt.
     const uitleg = "De som per stembureau is gecontroleerd tegen het gemeentetotaal. " +
-      "Bij verkiezingen met een aparte Totaaltelling (GR2014/GR2018/GR2026) is dat een " +
-      "onafhankelijke bron; bij de overige is het referentietotaal uit dezelfde telling afgeleid.";
+      "Een deel van de referentietotalen komt uit dezelfde telling. Dit controleert " +
+      "de verwerking; het is geen onafhankelijke herverificatie van alle bronuitslagen.";
     document.getElementById("meta-info").innerHTML =
-      ` · Laatst bijgewerkt: ${META.bijgewerkt} · integriteitscheck: <b style="color:${ok ? "#1e8449" : "#c0392b"}" title="${uitleg}">${ok ? `✓ ${nG}/${nT} totalen kloppen` : META.controle}</b>`;
+      ` · Laatst bijgewerkt: ${META.bijgewerkt.slice(0, 10)} · integriteitscheck: <b style="color:${ok ? "#1e8449" : "#c0392b"}" title="${uitleg}">${ok ? `✓ ${nG}/${nT} totalen kloppen` : META.controle}</b>`;
   }
+  window.addEventListener("hashchange", () => {
+    leesHash(); pasBesturingToe(); toonKeuzes(); herteken();
+    if (geselecteerd) selecteer(geselecteerd);
+  });
   herteken();
   // #9: kwam de selectie uit de permalink? Dan meteen grafiek + partijen tonen.
   if (geselecteerd) selecteer(geselecteerd);

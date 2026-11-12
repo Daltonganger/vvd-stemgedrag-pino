@@ -1,6 +1,4 @@
-/* AUTOMATISCH GEGENEREERD uit officiële Kiesraad EML (data.overheid.nl).
-   Bron-scripts: scripts/harvest.py + scripts/build_data.py. Niet met de hand bewerken;
-   draai de scripts opnieuw om bij te werken. Zie README.md. */
+/* Gegenereerd uit Kiesraad-brondata. Zie scripts/ en README.md. */
 const STEMBUREAUS = [
  {
   "id": "01",
@@ -8,7 +6,8 @@ const STEMBUREAUS = [
   "postcode": "2631BK",
   "lat": 52.0447,
   "lon": 4.39342,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Nootdorp"
  },
  {
   "id": "02",
@@ -16,7 +15,8 @@ const STEMBUREAUS = [
   "postcode": "2631CL",
   "lat": 52.04876,
   "lon": 4.38991,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Nootdorp"
  },
  {
   "id": "03",
@@ -24,7 +24,8 @@ const STEMBUREAUS = [
   "postcode": "2631CR",
   "lat": 52.04311,
   "lon": 4.39432,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Nootdorp"
  },
  {
   "id": "04",
@@ -32,7 +33,8 @@ const STEMBUREAUS = [
   "postcode": "2631GA",
   "lat": 52.04856,
   "lon": 4.3943,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Nootdorp"
  },
  {
   "id": "05",
@@ -40,7 +42,8 @@ const STEMBUREAUS = [
   "postcode": "2631GB",
   "lat": 52.04586,
   "lon": 4.39463,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Nootdorp"
  },
  {
   "id": "06",
@@ -48,7 +51,8 @@ const STEMBUREAUS = [
   "postcode": "2631GC",
   "lat": 52.04522,
   "lon": 4.39606,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Nootdorp"
  },
  {
   "id": "07",
@@ -56,7 +60,8 @@ const STEMBUREAUS = [
   "postcode": "2631GS",
   "lat": 52.04751,
   "lon": 4.39988,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Nootdorp"
  },
  {
   "id": "08",
@@ -64,7 +69,8 @@ const STEMBUREAUS = [
   "postcode": "2631PM",
   "lat": 52.04519,
   "lon": 4.41041,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Nootdorp"
  },
  {
   "id": "09",
@@ -72,7 +78,8 @@ const STEMBUREAUS = [
   "postcode": "2631PT",
   "lat": 52.04521,
   "lon": 4.40611,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Nootdorp"
  },
  {
   "id": "10",
@@ -80,7 +87,8 @@ const STEMBUREAUS = [
   "postcode": "2632BD",
   "lat": 52.05164,
   "lon": 4.40663,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Nootdorp"
  },
  {
   "id": "11",
@@ -88,7 +96,8 @@ const STEMBUREAUS = [
   "postcode": "2641AV",
   "lat": 52.02111,
   "lon": 4.42971,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "12",
@@ -96,7 +105,8 @@ const STEMBUREAUS = [
   "postcode": "2641AZ",
   "lat": 52.02441,
   "lon": 4.41706,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "13",
@@ -104,7 +114,8 @@ const STEMBUREAUS = [
   "postcode": "2641CA",
   "lat": 52.02449,
   "lon": 4.42932,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "14",
@@ -112,7 +123,8 @@ const STEMBUREAUS = [
   "postcode": "2641CB",
   "lat": 52.02095,
   "lon": 4.43232,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "15",
@@ -120,7 +132,8 @@ const STEMBUREAUS = [
   "postcode": "2641ED",
   "lat": 52.01478,
   "lon": 4.43705,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "16",
@@ -128,7 +141,8 @@ const STEMBUREAUS = [
   "postcode": "2641EZ",
   "lat": 52.01299,
   "lon": 4.43884,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "17",
@@ -136,7 +150,8 @@ const STEMBUREAUS = [
   "postcode": "2641HB",
   "lat": 52.0167,
   "lon": 4.43308,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "18",
@@ -144,7 +159,8 @@ const STEMBUREAUS = [
   "postcode": "2641HK",
   "lat": 52.01592,
   "lon": 4.43449,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "19",
@@ -152,7 +168,8 @@ const STEMBUREAUS = [
   "postcode": "2641JN",
   "lat": 52.01162,
   "lon": 4.43654,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "20",
@@ -160,7 +177,8 @@ const STEMBUREAUS = [
   "postcode": "2641KS",
   "lat": 52.02822,
   "lon": 4.44164,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "21",
@@ -168,7 +186,8 @@ const STEMBUREAUS = [
   "postcode": "2641MM",
   "lat": 52.01747,
   "lon": 4.44027,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "22",
@@ -176,7 +195,8 @@ const STEMBUREAUS = [
   "postcode": "2641NS",
   "lat": 51.98909,
   "lon": 4.42764,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "23",
@@ -184,7 +204,8 @@ const STEMBUREAUS = [
   "postcode": "2641PE",
   "lat": 52.03807,
   "lon": 4.46515,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "24",
@@ -192,7 +213,8 @@ const STEMBUREAUS = [
   "postcode": "2641ZA",
   "lat": 52.02617,
   "lon": 4.42194,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "25",
@@ -200,7 +222,8 @@ const STEMBUREAUS = [
   "postcode": "2642CR",
   "lat": 52.0128,
   "lon": 4.45028,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "26",
@@ -208,7 +231,8 @@ const STEMBUREAUS = [
   "postcode": "2642JK",
   "lat": 52.01015,
   "lon": 4.45275,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "27",
@@ -216,7 +240,8 @@ const STEMBUREAUS = [
   "postcode": "2642RA",
   "lat": 52.01362,
   "lon": 4.44263,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "28",
@@ -224,7 +249,8 @@ const STEMBUREAUS = [
   "postcode": "2643HD",
   "lat": 52.00598,
   "lon": 4.44413,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "29",
@@ -232,7 +258,8 @@ const STEMBUREAUS = [
   "postcode": "2643MC",
   "lat": 52.0036,
   "lon": 4.43862,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "30",
@@ -240,7 +267,8 @@ const STEMBUREAUS = [
   "postcode": "2645AS",
   "lat": 52.01127,
   "lon": 4.39605,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Delfgauw"
  },
  {
   "id": "31",
@@ -248,7 +276,8 @@ const STEMBUREAUS = [
   "postcode": "2645BD",
   "lat": 52.00733,
   "lon": 4.39782,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Delfgauw"
  },
  {
   "id": "32",
@@ -256,7 +285,8 @@ const STEMBUREAUS = [
   "postcode": "2645HH",
   "lat": 52.00386,
   "lon": 4.39457,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Delfgauw"
  },
  {
   "id": "33",
@@ -264,7 +294,8 @@ const STEMBUREAUS = [
   "postcode": "2645HV",
   "lat": 52.00442,
   "lon": 4.39195,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Delfgauw"
  },
  {
   "id": "34",
@@ -272,7 +303,8 @@ const STEMBUREAUS = [
   "postcode": "2645NT",
   "lat": 52.00838,
   "lon": 4.40004,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Delfgauw"
  },
  {
   "id": "35",
@@ -280,7 +312,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": null,
   "lon": null,
-  "mobiel": true
+  "mobiel": true,
+  "kern": null
  },
  {
   "id": "36",
@@ -288,7 +321,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": null,
   "lon": null,
-  "mobiel": true
+  "mobiel": true,
+  "kern": null
  },
  {
   "id": "37",
@@ -296,7 +330,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": null,
   "lon": null,
-  "mobiel": true
+  "mobiel": true,
+  "kern": null
  },
  {
   "id": "38",
@@ -304,7 +339,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": null,
   "lon": null,
-  "mobiel": true
+  "mobiel": true,
+  "kern": null
  },
  {
   "id": "39",
@@ -312,7 +348,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": null,
   "lon": null,
-  "mobiel": true
+  "mobiel": true,
+  "kern": null
  },
  {
   "id": "40",
@@ -320,7 +357,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.02115,
   "lon": 4.44002,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "41",
@@ -328,7 +366,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.03517,
   "lon": 4.41183,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Nootdorp"
  },
  {
   "id": "42",
@@ -336,7 +375,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.04267,
   "lon": 4.39361,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Nootdorp"
  },
  {
   "id": "43",
@@ -344,7 +384,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.00445,
   "lon": 4.44276,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "44",
@@ -352,7 +393,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.00984,
   "lon": 4.44463,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "45",
@@ -360,7 +402,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.01882,
   "lon": 4.43221,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "46",
@@ -368,7 +411,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.01882,
   "lon": 4.43221,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "47",
@@ -376,7 +420,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.03975,
   "lon": 4.38653,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Nootdorp"
  },
  {
   "id": "48",
@@ -384,7 +429,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.05165,
   "lon": 4.40453,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Nootdorp"
  },
  {
   "id": "49",
@@ -392,7 +438,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.0098,
   "lon": 4.45115,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "50",
@@ -400,7 +447,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.02115,
   "lon": 4.44002,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "51",
@@ -408,7 +456,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.01882,
   "lon": 4.43221,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "52",
@@ -416,7 +465,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.0098,
   "lon": 4.45115,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "53",
@@ -424,7 +474,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.01316,
   "lon": 4.43935,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "54",
@@ -432,7 +483,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.01264,
   "lon": 4.43597,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "55",
@@ -440,7 +492,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.01264,
   "lon": 4.43597,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "56",
@@ -448,7 +501,8 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.02232,
   "lon": 4.43201,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "57",
@@ -456,7 +510,8 @@ const STEMBUREAUS = [
   "postcode": "2641DE",
   "lat": 52.0214,
   "lon": 4.43433,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  },
  {
   "id": "58",
@@ -464,6 +519,7 @@ const STEMBUREAUS = [
   "postcode": "",
   "lat": 52.02606,
   "lon": 4.42237,
-  "mobiel": false
+  "mobiel": false,
+  "kern": "Pijnacker"
  }
 ];

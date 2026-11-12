@@ -3,12 +3,13 @@
 extraheert de Telling van Pijnacker-Nootdorp en verzamelt VVD + geldige stemmen
 per stembureau. Schrijft /tmp/all_rows.json."""
 import urllib.request, urllib.parse, json, io, zipfile, re, sys, time
+from common import RAW_DIR
 
 def fetch_url(url, timeout=300, tries=4):
     """Zelfde retry-logica als fetch(), maar met URL-encoding van de bestandsnaam
     (data.overheid.nl levert '... (Deel 1).zip' alleen als '%28Deel%201%29.zip')."""
     path = url.split("/")
-    enc = "/".join(path[:-1]) + "/" + urllib.parse.quote(path[-1], safe="")
+    enc = "/".join(path[:-1]) + "/" + urllib.parse.quote(urllib.parse.unquote(path[-1]), safe="")
     last = None
     for candidate in (enc, url):
         for i in range(tries):
@@ -215,6 +216,8 @@ def parse_telling(xml_bytes, soort, jaar):
                 geldig += vv
                 rn = next((y for y in aff.iter() if local(y.tag) == "RegisteredName"), None)
                 regname = (rn.text or "").strip() if rn is not None else ""
+                if not regname:
+                    regname = "Lijst zonder geregistreerde naam (" + aff.attrib.get("Id", "?") + ")"
                 if regname:
                     partijen[regname] = partijen.get(regname, 0) + vv
                 in_vvd = regname.upper().startswith("VVD")
@@ -319,60 +322,73 @@ def kandidaten_from_zip(zbytes, soort):
         break                                          # eerste VVD-lijst volstaat
     return namen
 
-all_rows = []
-kandidaten = {}
-totalen = {}
-for dsid, soort, jaar in DATASETS:
-    try:
-        zurls = DIRECT_ZIPS[(soort, jaar)] if (soort, jaar) in DIRECT_ZIPS else candidate_zips(dsid)
-        if isinstance(zurls, str):
-            zurls = [zurls]
-        zbytes_list = []          # alle zips bewaren: telling uit de eerste met hit, kandidatenlijst uit álle
-        xml = None
-        for zurl in zurls:
-            print(f".. {soort}{jaar}: probeer {zurl.split('/')[-1][:50]}", file=sys.stderr)
-            zb = fetch_url(zurl)
-            zbytes_list.append(zb)
-            if xml is None:
-                xml = telling_xml_from_zip(zb)
-        zbytes = zbytes_list[0]
-        if xml is None and (soort, jaar) == ("TK", 2017):
-            rows, lijst = parse_tk2017_csv(zbytes)
+def main():
+    failures = []
+    all_rows = []
+    kandidaten = {}
+    totalen = {}
+    for dsid, soort, jaar in DATASETS:
+        try:
+            zurls = DIRECT_ZIPS[(soort, jaar)] if (soort, jaar) in DIRECT_ZIPS else candidate_zips(dsid)
+            if isinstance(zurls, str):
+                zurls = [zurls]
+            zbytes_list = []          # alle zips bewaren: telling uit de eerste met hit, kandidatenlijst uit álle
+            xml = None
+            for zurl in zurls:
+                print(f".. {soort}{jaar}: probeer {zurl.split('/')[-1][:50]}", file=sys.stderr)
+                zb = fetch_url(zurl)
+                zbytes_list.append(zb)
+                if xml is None:
+                    xml = telling_xml_from_zip(zb)
+            zbytes = zbytes_list[0]
+            if xml is None and (soort, jaar) == ("TK", 2017):
+                rows, lijst = parse_tk2017_csv(zbytes)
+                tv = sum(r["vvd"] for r in rows); tg = sum(r["geldig"] for r in rows)
+                kandidaten[soort + str(jaar)] = {}
+                print(f"   -> {len(rows)} stembureaus (CSV), VVD={tv}, geldig={tg}, {100*tv/tg:.1f}%", file=sys.stderr)
+                all_rows.extend(rows)
+                continue
+            if not xml:
+                raise ValueError(f"geen Pijnacker Telling in {dsid}")
+            rows = parse_telling(xml, soort, jaar)
             tv = sum(r["vvd"] for r in rows); tg = sum(r["geldig"] for r in rows)
-            kandidaten[soort + str(jaar)] = {}
-            print(f"   -> {len(rows)} stembureaus (CSV), VVD={tv}, geldig={tg}, {100*tv/tg:.1f}%", file=sys.stderr)
-            all_rows.extend(rows)
-            continue
-        if not xml:
-            print(f"!! geen Pijnacker Telling in {dsid}", file=sys.stderr); continue
-        rows = parse_telling(xml, soort, jaar)
-        tv = sum(r["vvd"] for r in rows); tg = sum(r["geldig"] for r in rows)
-        # kandidatenlijst kan in een ANDER zip-deel zitten dan de telling -> scan alle zips
-        kand = {}
-        for zb in zbytes_list:
-            kand = kandidaten_from_zip(zb, soort)
-            if kand:
-                break
-        kandidaten[soort + str(jaar)] = kand
-        ref = None
-        for zb in zbytes_list:
-            ref = totaal_from_zip(zb)
-            if ref:
-                break
-        if not ref:  # #22: geen aparte Totaaltelling -> som uit de gemeente-telling zelf
+            # kandidatenlijst kan in een ANDER zip-deel zitten dan de telling -> scan alle zips
+            kand = {}
             for zb in zbytes_list:
-                ref = totaal_from_telling(zb)
-                if ref:
-                    print(f"   ({soort}{jaar}: referentie = som uit gemeente-telling, geen Totaaltelling)", file=sys.stderr)
+                kand = kandidaten_from_zip(zb, soort)
+                if kand:
                     break
-        if ref:
-            totalen[soort + str(jaar)] = ref
-        print(f"   -> {len(rows)} stembureaus, VVD={tv}, geldig={tg}, {100*tv/tg:.1f}% · {len(kand)} VVD-kandidaten", file=sys.stderr)
-        all_rows.extend(rows)
-    except Exception as e:
-        print(f"!! fout {dsid}: {e}", file=sys.stderr)
+            kandidaten[soort + str(jaar)] = kand
+            ref = None
+            for zb in zbytes_list:
+                ref = totaal_from_zip(zb)
+                if ref:
+                    break
+            if not ref:  # #22: geen aparte Totaaltelling -> som uit de gemeente-telling zelf
+                for zb in zbytes_list:
+                    ref = totaal_from_telling(zb)
+                    if ref:
+                        print(f"   ({soort}{jaar}: referentie = som uit gemeente-telling, geen Totaaltelling)", file=sys.stderr)
+                        break
+            if ref:
+                totalen[soort + str(jaar)] = ref
+            print(f"   -> {len(rows)} stembureaus, VVD={tv}, geldig={tg}, {100*tv/tg:.1f}% · {len(kand)} VVD-kandidaten", file=sys.stderr)
+            all_rows.extend(rows)
+        except Exception as e:
+            failures.append(f"{dsid}: {e}")
+            print(f"!! fout {dsid}: {e}", file=sys.stderr)
 
-json.dump(all_rows, open("/tmp/all_rows.json", "w"), ensure_ascii=False)
-json.dump(kandidaten, open("/tmp/kandidaten.json", "w"), ensure_ascii=False)
-json.dump(totalen, open("/tmp/totalen.json", "w"), ensure_ascii=False)
-print(f"TOTAAL: {len(all_rows)} regels -> /tmp/all_rows.json ; kandidaten + officiële totalen weggeschreven", file=sys.stderr)
+    if failures:
+        sys.exit("Ophalen mislukt; bestaande uitvoer behouden:\n" + "\n".join(failures))
+    expected = {kind + str(year) for _, kind, year in DATASETS}
+    actual = {row['soort'] + str(row['jaar']) for row in all_rows}
+    if actual != expected:
+        sys.exit(f"Onvolledige harvest: {sorted(actual)} != {sorted(expected)}")
+    RAW_DIR.mkdir(parents=True, exist_ok=True)
+    for name, value in [('all_rows', all_rows), ('kandidaten', kandidaten), ('totalen', totalen)]:
+        (RAW_DIR / (name + '.json')).write_text(json.dumps(value, ensure_ascii=False), encoding='utf-8')
+    print(f"TOTAAL: {len(all_rows)} regels -> {RAW_DIR}", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()

@@ -8,7 +8,8 @@ JA21 zit niet in de CHES-2024-wave; daarvoor de ParlGov left_right 2023 (8.8).
 Gebruik:  python3 scripts/fetch_partijen_lr.py"""
 import csv, io, json, os, re, sys, urllib.request
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from common import ROOT as OUTPUT_ROOT
+ROOT = str(OUTPUT_ROOT)
 CHES_URL = "https://github.com/chesdata/chesdata.github.io/releases/download/ches-europe/CHES_2024_final_v2.csv"
 UA = {"User-Agent": "VVD-PijnackerNootdorp-partijposities/1.0"}
 

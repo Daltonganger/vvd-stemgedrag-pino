@@ -119,13 +119,12 @@ main{display:grid;grid-template-columns:1fr 22rem;gap:1rem;padding:1rem;align-it
 /* ---- #18: politieke positie-paneel ---- */
 .posblok{margin-bottom:.4rem}
 .poskop{font-size:.72rem;font-weight:700;color:var(--blauw);text-transform:uppercase;letter-spacing:.3px;margin-bottom:.15rem}
-.posrow{display:grid;grid-template-columns:5.2rem 1fr 2.2rem;align-items:center;gap:.5rem;font-size:.82rem;padding:.1rem 0}
+.posrow{display:grid;grid-template-columns:5.2rem 1fr 5.5rem;align-items:center;gap:.5rem;font-size:.82rem;padding:.1rem 0}
 .posrow .pl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .posrow b{text-align:right;color:var(--blauw)}
 .posmeter{position:relative;height:.55rem;background:linear-gradient(90deg,#6a51a3,#eeeeee 50%,#FF6400);border-radius:3px}
 .posmeter i{position:absolute;top:-2px;width:3px;height:calc(100% + 4px);background:#152033;border-radius:2px;transform:translateX(-50%)}
-.posas{display:flex;justify-content:space-between;font-size:.65rem;color:var(--grijs);margin-top:.2rem;
-  background:linear-gradient(90deg,#6a51a3,#eeeeee 50%,#FF6400);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700}
+.posas{display:flex;justify-content:space-between;font-size:.65rem;color:var(--grijs);margin-top:.2rem;font-weight:700}
 
 /* ---- stijgers & dalers (#5) ---- */
 .moverkop{font-size:.74rem;font-weight:700;margin:.5rem 0 .15rem}
@@ -244,3 +243,6 @@ tr.mobiel td:first-child::after{content:" ⨯ niet op kaart";color:#b00;font-siz
 .pres-nav #pres-sluit:hover{background:rgba(255,255,255,.15)}
 #pres-teller{font-size:.85rem;color:#dfe4ff}
 body.pres-open{overflow:hidden}
+
+.kaart-uitleg{margin:.6rem .8rem;font-size:.78rem;color:var(--grijs)}
+.poswaarde{text-align:right}.poswaarde small{display:block;font-size:.65rem;color:var(--grijs)}

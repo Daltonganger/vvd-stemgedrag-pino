@@ -5,15 +5,12 @@ kale kern-naam) via de PDOK Locatieserver. Weigert gemeente/woonplaats-treffers.
 Gebruik:  python3 scripts/geocode_retry.py"""
 import json, os, re, sys, time, urllib.request, urllib.parse
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from common import SOURCE_ROOT, load_locations
+from common import ROOT as OUTPUT_ROOT
+ROOT = str(OUTPUT_ROOT)
 KERNEN = ["Pijnacker", "Nootdorp", "Delfgauw"]
 
-def jsobj(path, marker):
-    s = open(path).read()
-    return json.loads(s[s.index(marker) + len(marker):s.rindex(";")].strip())
-
-# Gemeentegrens-bbox van Pijnacker-Nootdorp (zelfde als build_gebieden.py) — een coördinaat
-# daarbuiten is per definitie een verkeerde treffer (generieke naam matcht elders in NL).
+# Ruime zoekrechthoek rond PiNo; dit is geen echte gemeentegrenscontrole.
 BBOX = (51.955, 4.155, 52.085, 4.695)   # minlat, minlon, maxlat, maxlon
 
 def geocode(q):
@@ -47,8 +44,8 @@ def varianten(naam):
     return out
 
 def main():
-    path = os.path.join(ROOT, "data", "stembureaus.js")
-    sb = jsobj(path, "const STEMBUREAUS =")
+    path = SOURCE_ROOT / "config/locaties.json"
+    sb = load_locations()
     targets = [s for s in sb if not s.get("lat") and not s.get("mobiel")]
     print(f"{len(targets)} locaties zonder coördinaat", file=sys.stderr)
     updated = 0
@@ -64,9 +61,8 @@ def main():
         else:
             print(f"  {s['id']} {s['naam'][:35]:35} -> geen adres gevonden (blijft tabel-only)", file=sys.stderr)
     if updated:
-        header = open(path).read().split("const STEMBUREAUS")[0]
         with open(path, "w") as f:
-            f.write(header + "const STEMBUREAUS = " + json.dumps(sb, ensure_ascii=False, indent=1) + ";\n")
+            f.write(json.dumps(sb, ensure_ascii=False, indent=2) + "\n")
     print(f"{updated}/{len(targets)} locaties geüpdatet", file=sys.stderr)
 
 if __name__ == "__main__":

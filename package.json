@@ -1,0 +1,11 @@
+{
+  "name": "vvd-stemgedrag-pino",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/model.test.cjs && python3 -m unittest discover -s tests -p 'test_*.py' && python3 scripts/validate_data.py",
+    "test:browser": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0"
+  }
+}

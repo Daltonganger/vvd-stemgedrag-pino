@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VVD Pijnacker-Nootdorp · Stemgedrag per stembureau</title>
 <link rel="icon" href="assets/vvd-logo.png">
-<link rel="stylesheet" href="vendor/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
+<link rel="stylesheet" href="vendor/leaflet.css">
 <!-- #21: cache-buster automatisch uit META.bijgewerkt (data/meta.js) — geen handmatige ?v= meer nodig -->
 <script src="data/meta.js"></script>
-<script>document.write('<link rel="stylesheet" href="style.css?v=' + (window.META ? META.bijgewerkt : Date.now()) + '">');</script>
+<script>document.write('<link rel="stylesheet" href="style.css?v=' + encodeURIComponent(typeof META !== "undefined" ? META.bijgewerkt : Date.now()) + '">');</script>
 </head>
 <body>
 
@@ -34,7 +34,7 @@
         <option value="vspartij">VVD t.o.v. gekozen partij</option>
         <option value="opkomst">Opkomst per stembureau (indicatief — drukte)</option>
         <option value="kandidaat">Aandeel VVD-kandidaat (waar is kandidaat sterk)</option>
-        <option value="positie">Politieke positie stembureau (links↔rechts, CHES 2024)</option>
+        <option value="positie">Index stemverdeling (vaste CHES 2024-partijposities)</option>
       </select>
     </label>
     <label id="lbl-partij" hidden>Vergelijk partij
@@ -69,6 +69,7 @@
 
 <main>
   <section class="panel map-panel">
+    <p class="kaart-uitleg">Vlakken zijn nabijheidsgebieden rond stemlocaties, geen woongebieden van kiezers. Partijpercentages laten geen individuele kiezersstromen zien.</p>
     <div id="map"></div>
     <div id="legend" class="legend"></div>
   </section>
@@ -83,9 +84,9 @@
       <div id="kern-body"></div>
     </div>
     <div class="card" id="positie-card">
-      <h2>Politieke positie — gemeente (links ↔ rechts)</h2>
+      <h2>Index stemverdeling — gemeente (links ↔ rechts)</h2>
       <div id="positie-body"></div>
-      <p class="hint">Gewogen gemiddelde van CHES 2024 links/rechts-scores (0=links, 10=rechts) over alle partijen met een score. Lokale partijen zonder score tellen niet mee.</p>
+      <p class="hint">Gewogen index met vaste CHES 2024-partijposities (0=links, 10=rechts), ook voor oudere jaren. Dit meet geen historische verandering van partijstandpunten. JA21 gebruikt ParlGov 2023. Partijen zonder score tellen niet mee; dekking is het aandeel stemmen met een score.</p>
     </div>
     <div class="card" id="movers-card" hidden>
       <h2 id="movers-title">Stijgers &amp; dalers</h2>
@@ -94,7 +95,7 @@
     <div class="card">
       <h2 id="chart-title">Klik een stembureau</h2>
       <canvas id="chart" height="190"></canvas>
-      <p class="hint">Klik een stip op de kaart of een rij in de tabel.</p>
+      <p class="hint">Klik een stemlocatie of tabelrij. Verkiezingen zijn per niveau gegroepeerd; lijnen verbinden alleen hetzelfde niveau.</p>
     </div>
     <div class="card" id="partijen-card" hidden>
       <h2 id="partijen-title">Partijen hier</h2>
@@ -150,8 +151,8 @@
 </div>
 <div id="live" class="visually-hidden" aria-live="polite"></div>
 
-<script src="vendor/leaflet.js" integrity="sha384-MqBTuoPK56hXSXu+CBGieY4+YmVJ9nPtRptTkiuNSz3t1YCzASShUH1ex3Rgcf2u" crossorigin="anonymous"></script>
-<script src="vendor/chart.umd.min.js" integrity="sha384-gfXUqR5vZoGaSWfnt7sdtbok7tYQpPWuRu+iOZgEc+cZmK90gnHyalBH/o7aTyiw" crossorigin="anonymous"></script>
+<script src="vendor/leaflet.js"></script>
+<script src="vendor/chart.umd.min.js"></script>
 <script src="data/stembureaus.js"></script>
 <script src="data/uitslagen.js"></script>
 <script src="data/kandidaten.js"></script>
@@ -161,17 +162,22 @@
 /* #15 — kies de basiskaart vóór het laden: licht bestand (~4 MB) op mobiel / databesparing /
    trage verbinding, vol bestand (~8 MB) op de rest. Handmatige override in localStorage. */
 (function () {
-  var pref = localStorage.getItem("kaartdetail") || "auto";
+  var pref = "auto";
+  try { pref = localStorage.getItem("kaartdetail") || "auto"; } catch (e) { /* Opslag is optioneel. */ }
   var c = navigator.connection || {};
   var autoLicht = !!c.saveData || /(^|-)[23]g$/.test(c.effectiveType || "") ||
                   matchMedia("(max-width:860px)").matches;
   var licht = pref === "licht" || (pref === "auto" && autoLicht);
-  var v = (typeof META !== "undefined" && META.bijgewerkt) ? "?v=" + META.bijgewerkt : "";
+  var v = (typeof META !== "undefined" && META.bijgewerkt) ? "?v=" + encodeURIComponent(META.bijgewerkt) : "";
   document.write('<script src="data/basemap' + (licht ? ".lite" : "") + '.js' + v + '"><\/script>');
 })();
 </script>
 <script src="data/gebieden.js"></script>
-<!-- #21: app.js met automatische cache-buster uit META.bijgewerkt -->
-<script>document.write('<script src="app.js?v=' + (window.META ? META.bijgewerkt : Date.now()) + '"><\/script>');</script>
+<!-- Klassieke scripts houden dubbelklikken (file://) volledig offline bruikbaar. -->
+<script>
+["model.js", "presentatie.js", "export.js", "app.js"].forEach(function (file) {
+  document.write('<script src="' + file + '?v=' + encodeURIComponent(META.bijgewerkt) + '"><\/script>');
+});
+</script>
 </body>
 </html>

@@ -7,7 +7,9 @@ gemeentegrens-bbox gevalideerd.
 Gebruik:  python3 scripts/geocode_handmatig.py"""
 import json, os, re, sys, time, urllib.request, urllib.parse
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from common import SOURCE_ROOT, load_locations
+from common import ROOT as OUTPUT_ROOT
+ROOT = str(OUTPUT_ROOT)
 BBOX = (51.955, 4.155, 52.085, 4.695)   # zelfde als geocode_retry.py / app.js maxBounds
 
 # id in data/stembureaus.js -> (adres-zoekterm, bron-opmerking)
@@ -46,9 +48,8 @@ def geocode_adres(q):
     return None
 
 def main():
-    path = os.path.join(ROOT, "data", "stembureaus.js")
-    s = open(path).read()
-    sb = json.loads(s[s.index("const STEMBUREAUS =") + len("const STEMBUREAUS ="):s.rindex(";")].strip())
+    path = SOURCE_ROOT / "config/locaties.json"
+    sb = load_locations()
     updated = 0
     for srow in sb:
         sid = srow["id"]
@@ -59,15 +60,15 @@ def main():
         if res:
             lat, lon, weer = res
             srow["lat"], srow["lon"] = lat, lon
+            srow["bron"] = bron
             updated += 1
             print(f"  {sid} {srow['naam'][:32]:32} <- {q}  {lat},{lon}  ({weer[:40]})  [{bron[:50]}]", file=sys.stderr)
         else:
             print(f"  {sid} {srow['naam'][:32]:32} -> GEEN adres binnen grens voor '{q}' (blijft tabel-only)  [{bron[:50]}]", file=sys.stderr)
         time.sleep(0.15)
     if updated:
-        header = s.split("const STEMBUREAUS")[0]
         with open(path, "w") as f:
-            f.write(header + "const STEMBUREAUS = " + json.dumps(sb, ensure_ascii=False, indent=1) + ";\n")
+            f.write(json.dumps(sb, ensure_ascii=False, indent=2) + "\n")
     print(f"{updated} locaties handmatig gelokaliseerd", file=sys.stderr)
 
 if __name__ == "__main__":
