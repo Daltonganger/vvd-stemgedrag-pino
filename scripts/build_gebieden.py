@@ -10,7 +10,8 @@ onder de bureaus die er wél waren. Schrijft data/gebieden.js:
 ponytail: gaten/enclaves in de grens worden genegeerd (PiNo heeft die niet noemenswaardig)."""
 import os, re, json, urllib.request, sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from common import ROOT as OUTPUT_ROOT
+ROOT = str(OUTPUT_ROOT)
 
 def laad(var):
     t = open(os.path.join(ROOT, "data", var + ".js")).read()

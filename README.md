@@ -1,110 +1,124 @@
-# VVD Pijnacker-Nootdorp — stemgedrag per stembureau
+# VVD Pijnacker-Nootdorp — stemgedrag per stemlocatie
 
-Een statische website die per stembureau de VVD-uitslag vergelijkt over drie niveaus
-(landelijk / provincie / gemeente) en meerdere jaren, met een interactieve kaart,
-sorteerbare tabel, grafiek per stembureau en CSV-export. Bedoeld voor presentatie aan
-het bestuur.
+Statische website met officiële verkiezingsuitslagen per stemlocatie, een kaart,
+sorteerbare tabel, partijverdelingen, VVD-kandidaten, CSV/PNG-export en een
+presentatiemodus. De browser heeft geen server, account of internet nodig.
 
 ## Openen
-- **Lokaal:** dubbelklik `index.html`. Werkt direct, geen server nodig.
-- **Online:** zet de map op GitHub Pages (of een willekeurige webhost).
-- ✅ **Volledig offline / presentatie-proof.** Geen internet nodig: Leaflet en Chart.js
-  staan lokaal in `vendor/`, het lettertype in `font/`, en de kaart is een **offline
-  vector-basiskaart** (`data/basemap.js`) uit OpenStreetMap-data — geen kaartserver.
-  Getest: de pagina doet bij laden **nul externe requests**.
 
-## Wat zie je
-- **Kaart** — schakelbaar tussen **Vlakken** (per stembureau), **Kernen** (Pijnacker /
-  Nootdorp / Delfgauw apart ingekleurd) en **Stippen**. Kleur = gekozen maatstaf ("Kaart toont"):
-  - VVD-% van de gekozen verkiezing
-  - Afwijking t.o.v. het VVD-gemeentegemiddelde (rood onder / groen boven)
-  - Lokale meerwaarde: laatste gemeente-% minus laatste landelijk-%
-  - Winst/verlies t.o.v. de vorige verkiezing van hetzelfde niveau
-  - VVD t.o.v. de grootste partij (voorsprong/achterstand)
-- **Tabel** — VVD-% (met aantallen) per verkiezing, gegroepeerd per niveau, sorteerbaar;
-  klik een rij om de grafiek, partijen en kaart te focussen. Kolom **Lokale meerwaarde** =
-  hoeveel beter (of slechter) de VVD lokaal scoort dan landelijk.
-- **Samenvatting** — per verkiezing: VVD-gemeentegemiddelde, **opkomst (gemeente)**,
-  **grootste partij** en de rang van de VVD.
-- **Per kern** — VVD-%, opkomst en grootste partij per kern (Pijnacker / Nootdorp / Delfgauw).
-- **Stijgers & dalers** — grootste VVD-winst/-verlies per stembureau t.o.v. de vorige keer.
-- **VVD-kandidaten** — voorkeurstemmen per kandidaat per stembureau/kern (met namen, gemeenteraad);
-  kaartweergave "Aandeel VVD-kandidaat" laat zien waar een kandidaat sterk is.
-- **Grafiek** — VVD-% van het gekozen stembureau over alle verkiezingen.
-- **Partijen** — bij een gekozen stembureau de volledige ranglijst van partijen (VVD
-  gemarkeerd): zie meteen *waar de VVD aan wie verliest*.
-- **Download CSV** — alle cijfers (aantallen, %, uitgebrachte stemmen, grootste partij).
+Dubbelklik `index.html`, of publiceer de bestanden op GitHub Pages. Leaflet,
+Chart.js, lettertypen en vector-basiskaarten staan lokaal. Voor lokale ontwikkeling
+kan ook `python3 scripts/serve.py` worden gebruikt.
 
-## Databron — dit zijn ECHTE, officiële cijfers
-De cijfers komen uit de **officiële EML-uitslagbestanden van de Kiesraad** op
-[data.overheid.nl](https://data.overheid.nl), per stembureau. Verwerkte verkiezingen:
+De kaart biedt Vlakken, Kernen en Stippen. Kaartmaten zijn VVD-aandeel, afwijking,
+verschil met een andere partij, winst/verlies ten opzichte van dezelfde soort
+verkiezing, gemeentelijk versus landelijk aandeel, opkomsttelling, kandidaataandeel
+en een index met vaste partijposities. Deelbare links bewaren verkiezing, maat,
+weergave, partij of kandidaat, geselecteerde locatie en zichtbare tabelniveaus.
+Een lokale `file://`-link werkt alleen op een computer met dezelfde bestanden;
+publiceer de site om links met anderen te delen.
 
 | Niveau | Verkiezingen |
-|--------|--------------|
-| Landelijk (Tweede Kamer) | 2021, 2023, 2025 |
-| Provincie (Provinciale Staten) | 2023 |
-| Gemeente (Gemeenteraad) | 2018, 2022, 2026 |
+| --- | --- |
+| Europees | 2009, 2014, 2019, 2024 |
+| Tweede Kamer | 2010, 2012, 2017, 2021, 2023, 2025 |
+| Provinciale Staten | 2015, 2019, 2023 |
+| Gemeenteraad | 2014, 2018, 2022, 2026 |
 
-Gecontroleerd: de som per verkiezing klopt met de gepubliceerde gemeentetotalen
-(bv. Gemeenteraad 2026 = 3.131 VVD-stemmen, Tweede Kamer 2025 = 6.264, Prov. Staten 2023 = 4.244).
+## Wat de cijfers betekenen
 
-`percentage = VVD-stemmen ÷ geldige stemmen` (in de code berekend, nooit los opgeslagen).
+- VVD-percentage = VVD-stemmen / geldige stemmen. Percentages worden berekend,
+  niet los opgeslagen. De bestaande gemeentetotalen zijn behouden, waaronder
+  GR2026 3.131 VVD-stemmen, TK2025 6.264 en PS2023 4.244.
+- De bronnen zijn Kiesraad-EML via data.overheid.nl; TK2017 gebruikt de beschikbare
+  CSV. Downloadadressen en verwerking staan in `scripts/harvest.py`.
+- De footer onderscheidt gecontroleerde en overgeslagen verkiezingen (momenteel
+  16/17). Veel referentietotalen zijn afgeleid uit dezelfde gemeentetelling. Die
+  controle bewijst consistente verwerking, geen onafhankelijke bronverificatie.
+- De oudere TK2010-broncache bevat niet uitgesplitste reststemmen; die blijven
+  herkenbaar als onbekende categorie, zodat de partijsom volledig blijft. Nieuwe
+  EML-imports behouden onbenoemde lijsten met hun lijstnummer.
+- Historische locaties, aantallen bureaus en hun bezoekers veranderen. Een
+  vergelijking tussen dezelfde locaties is geen meting van dezelfde kiezers.
+- Voronoi-vlakken zijn geconstrueerde nabijheidsgebieden, geen kiesdistricten of
+  woongebieden. Partijverdelingen tonen geen individuele kiezersstromen.
+- Kernen volgen de expliciete locatie-indeling in `config/locaties.json`. De UI
+  vermeldt de ingedeelde stemmen; mobiele/briefstemmen blijven buiten de kernen.
+- Opkomst ontbreekt voor EP2009, TK2010 en TK2012 en verschijnt als **onbekend**.
+  Ontbrekende tellingen zijn `null`. Bij EML is het veld `uitgebracht` afkomstig
+  uit de telling van toegelaten kiezers; kleine officiële telverschillen met
+  geldige stembiljetten kunnen voorkomen. Per locatie/kern is opkomst indicatief:
+  kiezers zijn niet aan hun stemlocatie gebonden.
+- De links/rechts-index gebruikt **vaste CHES 2024-partijposities**, ook voor oude
+  verkiezingen; JA21 komt uit ParlGov 2023. Dekking is het aandeel stemmen waarvan
+  een partijscore bekend is. Partijen zonder score worden uitgesloten, waaronder
+  lokale partijen. De index meet geen verandering van partijstandpunten door de
+  tijd. Verkiezingen worden niet tot één totaalgemiddelde samengevoegd.
+- Lokale meerwaarde is het verschil tussen de laatste GR- en TK-verkiezing. Een
+  negatief verschil is een achterstand, geen lokale overprestatie.
 
-### Kanttekeningen bij de data (eerlijk te vermelden bij de presentatie)
-- **Stembureaus wisselen per verkiezing.** Genummerde bureaus en corona-dagsplitsingen
-  (2021) zijn per gebouw samengevoegd; 2018 gebruikte deels andere locaties (scholen).
-  Daardoor heeft niet elk stembureau een waarde in elk jaar (lege cel = `·`).
-- **Mobiele, brief- en telstembureaus** hebben geen vaste stemlocatie; ze staan wél in
-  de tabel/totalen maar **niet op de kaart**.
-- **Opkomst** wordt op **gemeente-niveau** als percentage getoond (gekalibreerd tegen de
-  officiële totalen, bv. Gemeenteraad 2026 = 59,3%). Per stembureau tonen we alleen het
-  **aantal uitgebrachte stemmen** (een echte telling) en bewust géén opkomst-%: kiezers
-  zijn niet aan hun stembureau gebonden, dus een per-bureau-% is misleidend (een centraal
-  bureau lijkt dan >90%).
+## Data bijwerken
 
-## Data bijwerken (bij een volgende verkiezing)
-De databestanden zijn **automatisch gegenereerd** — niet met de hand bewerken. Bijwerken:
+Python 3.10+ volstaat; de scripts gebruiken alleen de standaardbibliotheek.
 
-1. Voeg de nieuwe verkiezing toe aan de lijst `DATASETS` in `scripts/harvest.py`
-   (dataset-naam van data.overheid.nl + soort `TK`/`PS`/`GR` + jaartal).
-2. Draai het master-script (doet alles in de juiste volgorde + integriteitscheck):
-   ```bash
-   python3 scripts/update_all.py
-   ```
-   Het stopt zichtbaar als de som per verkiezing niet klopt met het officiële gemeentetotaal.
-3. Herlaad `index.html` (harde refresh).
+1. Voeg een verkiezing toe aan `DATASETS` in `scripts/harvest.py`.
+2. Controleer nieuwe stemlocaties en voeg ze met een nieuw blijvend ID toe aan
+   `config/locaties.json`. Zie [locatiebeleid](docs/locaties.md).
+3. Draai `python3 scripts/update_all.py` en controleer de diff.
 
-De afzonderlijke stappen (`harvest.py`, `build_data.py`, `build_gebieden.py`, `fetch_basemap.py`,
-`fetch_offline.py`) kun je ook los draaien; `update_all.py` ketent ze aan elkaar.
+De master bouwt in een tijdelijke map: download, locatiekoppeling, totalencontrole,
+partijposities, gebieden, basiskaarten, libraries en eindvalidatie. Bij een
+ontbrekende verkiezing, onbekende locatie, ongeldige telling of downloadfout
+blijven de bestaande bestanden behouden. Pas na alle geslaagde stappen worden
+data en vendor vervangen; een schrijffout rolt die vervanging terug. Voer dit uit
+vóór publicatie, niet terwijl een webserver de bestanden actief serveert.
 
-## Bestanden
+Voor losse stappen kunnen `PINO_RAW_DIR` (standaard `/tmp`) en `PINO_OUTPUT_ROOT`
+(standaard de projectmap) worden ingesteld. Zo kun je een bestaande volledige
+harvest opnieuw bouwen zonder netwerk:
+
+```sh
+PINO_OUTPUT_ROOT=/tmp/pino-build python3 scripts/build_data.py
 ```
-index.html            pagina
-style.css             VVD-huisstijl (Aeonik, royaal blauw #0A2CCA / oranje #FF6400)
-app.js                kaart, tabel, grafiek, filters, CSV
-assets/vvd-logo.png   officieel VVD-logo (brandbook)
-font/Aeonik-*.ttf     officieel VVD-lettertype (lokaal ingeladen via @font-face)
-vendor/               Leaflet + Chart.js lokaal (offline)
-data/stembureaus.js   locaties (naam, postcode, lat/lon)  — gegenereerd
-data/uitslagen.js     VVD + geldige stemmen per stembureau per verkiezing — gegenereerd
-data/basemap.js       offline vector-basiskaart (water/wegen/kernen) uit OSM — gegenereerd
-data/gebieden.js      stembureau-gebieden (Voronoi op de gemeentegrens) — gegenereerd
-data/kandidaten.js    VVD-kandidaatnamen per verkiezing — gegenereerd
-data/meta.js          laatst-bijgewerkt-datum + integriteitsstatus — gegenereerd
-scripts/update_all.py MASTER: werkt alles in één keer bij (alle stappen hieronder)
-scripts/harvest.py    download + parse officiële Kiesraad-EML (+ kandidaten + controle-totalen)
-scripts/build_data.py clusteren (op postcode) + geocoderen + integriteitscheck -> data/*.js
-scripts/fetch_offline.py  vendor Leaflet + Chart.js naar vendor/
-scripts/fetch_basemap.py  genereer data/basemap.js uit OpenStreetMap (Overpass)
-scripts/build_gebieden.py genereer data/gebieden.js (Thiessen/Voronoi, grens via PDOK)
-docs/verbeterplan.md  top-11 verbeterplan
+
+Dat vereist `all_rows.json`, `kandidaten.json` en `totalen.json` in de raw-map.
+Ook de losse build weigert een onvolledige verkiezingsset. `merge_election.py EP
+2024` voegt één verkiezing toe, controleert vóór schrijven en behoudt overige
+data. Daarna moeten de gebieden opnieuw worden gebouwd. Gebruik voor volledige
+publicatie bij voorkeur de master.
+
+Handmatige geocodecorrecties staan in het locatieregister en blijven behouden.
+De geocodescripts zijn onderhoudshulpmiddelen voor dat register; ze hoeven niet
+bij iedere build opnieuw online te zoeken. Libraryversies zijn vastgelegd in
+`fetch_offline.py`, checksums in `config/vendor-sha256.json`. De browser laadt ze
+zonder CORS/SRI om `file://` te ondersteunen; de build en CI controleren de hashes.
+
+## Ontwikkelen en controleren
+
+Node 22+ is alleen nodig voor tests; de website zelf vereist geen npm-installatie.
+
+```sh
+npm ci
+npm test
+npx playwright install chromium
+npm run test:browser
 ```
 
-## Offline (al ingebouwd)
-De site is volledig offline. De onderdelen zijn ooit eenmalig opgehaald met:
-```bash
-python3 scripts/fetch_offline.py   # Leaflet + Chart.js -> vendor/
-python3 scripts/fetch_basemap.py   # vector-basiskaart -> data/basemap.js
-```
-Opnieuw draaien hoeft alleen als je de libs of de kaart wilt verversen.
-Kaartdata © OpenStreetMap-bijdragers (ODbL).
+De tests controleren berekeningen, kernindeling, ontbrekende waarden, behoud van
+uitvoer bij fouten, locatie-ID's, libraries, alle 459 kaartcombinaties, PNG-downloads,
+permalinks, presentatieclaims, toetsenbordbediening, mobiel en `file://`.
+GitHub Actions draait deze controles bij pushes en pull requests. Browsertraces
+van mislukte tests worden als artifact bewaard.
+
+## Opzet
+
+- `model.js`: verkiezingen, indexen en aggregaties.
+- `app.js`: kaart, tabel, grafiek, filters, CSV en URL-state.
+- `presentatie.js`: presentatievragen en dialogbediening.
+- `export.js`: PNG-renderer met dezelfde projectie, schaal, legenda en weergave.
+- `config/locaties.json`: blijvende locatie-identiteit, kernen en correcties.
+- `data/*.js`: gegenereerde cijfers en offline kaartdata.
+- `scripts/`: downloaden, bouwen en valideren.
+- `tests/`: reken-, pipeline- en browserregressies.
+
+Kaartdata © OpenStreetMap-bijdragers (ODbL). Gemeentegrens: Kadaster/PDOK.

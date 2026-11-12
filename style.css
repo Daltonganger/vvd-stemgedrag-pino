@@ -83,6 +83,7 @@ main{display:grid;grid-template-columns:1fr 22rem;gap:1rem;padding:1rem;align-it
 .pkop .pp{color:var(--blauw)}
 .pv{width:2.8em;text-align:right;color:var(--grijs)}
 .popuphint{margin-top:.4rem;font-size:.7rem;color:var(--grijs)}
+.prow.vvdrij .pl,.prow.vvdrij .pp{color:var(--blauw);font-weight:700}   /* #19: VVD-regel in popup vet/blauw */
 
 /* ---- partijen-uitsplitsing ---- */
 #partijen-body .pbar{display:grid;grid-template-columns:1.1rem 1fr 3.4rem 2.8rem 2.1rem;align-items:center;gap:.4rem;font-size:.78rem;padding:.13rem 0}
@@ -115,14 +116,25 @@ main{display:grid;grid-template-columns:1fr 22rem;gap:1rem;padding:1rem;align-it
 .kernrow .kp{text-align:right;font-weight:700;color:var(--oranje)}
 #kern-body .ksub{font-size:.7rem;color:var(--grijs);margin:0 0 .35rem}
 
+/* ---- #18: politieke positie-paneel ---- */
+.posblok{margin-bottom:.4rem}
+.poskop{font-size:.72rem;font-weight:700;color:var(--blauw);text-transform:uppercase;letter-spacing:.3px;margin-bottom:.15rem}
+.posrow{display:grid;grid-template-columns:5.2rem 1fr 5.5rem;align-items:center;gap:.5rem;font-size:.82rem;padding:.1rem 0}
+.posrow .pl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.posrow b{text-align:right;color:var(--blauw)}
+.posmeter{position:relative;height:.55rem;background:linear-gradient(90deg,#6a51a3,#eeeeee 50%,#FF6400);border-radius:3px}
+.posmeter i{position:absolute;top:-2px;width:3px;height:calc(100% + 4px);background:#152033;border-radius:2px;transform:translateX(-50%)}
+.posas{display:flex;justify-content:space-between;font-size:.65rem;color:var(--grijs);margin-top:.2rem;font-weight:700}
+
 /* ---- stijgers & dalers (#5) ---- */
 .moverkop{font-size:.74rem;font-weight:700;margin:.5rem 0 .15rem}
-.moverkop.up{color:#1e8449}
-.moverkop.down{color:#c0392b}
+/* #8: winst/verlies in RdBu (zelfde als de kaart) — kleurenblind-veilig; ▲▼ is de vorm, niet de kleur */
+.moverkop.up{color:#2166ac}
+.moverkop.down{color:#b2182b}
 .moverrow{display:flex;justify-content:space-between;gap:.5rem;font-size:.82rem;padding:.12rem 0;cursor:pointer}
 .moverrow:hover{color:var(--blauw)}
-.moverrow b.up{color:#1e8449}
-.moverrow b.down{color:#c0392b}
+.moverrow b.up{color:#2166ac}
+.moverrow b.down{color:#b2182b}
 
 /* ---- kern-labels op de kaart ---- */
 .kernlabel.leaflet-tooltip{background:none;border:0;box-shadow:none;color:var(--blauw);font-weight:800;font-size:1rem;
@@ -142,8 +154,9 @@ main{display:grid;grid-template-columns:1fr 22rem;gap:1rem;padding:1rem;align-it
 .table-panel{margin:0 1rem 1.5rem}
 .table-head{display:flex;justify-content:space-between;align-items:center;padding:.8rem 1rem}
 .table-head h2{font-size:1rem;color:var(--blauw)}
-#btn-csv{background:var(--blauw);color:#fff;border:0;border-radius:5px;padding:.45rem .8rem;cursor:pointer;font-size:.85rem}
-#btn-csv:hover{background:var(--blauw-donker)}
+#btn-csv,#btn-csv-partijen{background:var(--blauw);color:#fff;border:0;border-radius:5px;padding:.45rem .8rem;cursor:pointer;font-size:.85rem}
+#btn-csv:hover,#btn-csv-partijen:hover{background:var(--blauw-donker)}
+.csv-knoppen{display:inline-flex;gap:.5rem}
 .table-wrap{overflow-x:auto}
 table{border-collapse:collapse;width:100%;font-size:.82rem}
 th,td{padding:.4rem .55rem;text-align:right;white-space:nowrap;border-bottom:1px solid var(--lijn)}
@@ -191,7 +204,45 @@ tr.mobiel td:first-child::after{content:" ⨯ niet op kaart";color:#b00;font-siz
   .detail-toggle{display:block;margin:.4rem 0 0}
 }
 @media print{
-  .controls,#btn-csv,.hint{display:none}
+  .controls,#btn-csv,#btn-csv-partijen,.hint,.pres{display:none}
   body{background:#fff;font-size:11px}
   .panel{break-inside:avoid}
 }
+
+/* ---- #8: toegankelijkheid ---- */
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* #8: divergente vlakken krijgen een patroon zodat kleur én vorm de richting aangeven
+   (werkt ook in grijswaarden/print). Positieve waarde = stijgende strepen, negatief = dalend. */
+.patroon-pos{fill:url(#patroon-pos)!important}
+.patroon-neg{fill:url(#patroon-neg)!important}
+/* #4: stippen zijn SVG-paden met een fill, geen stroke — een patroon als stroke werkt daar
+   niet. Vormverschil via een gestreepte rand: positief = fijne stippellijn, negatief = grof.
+   Samen met de RdBu-vulling is de richting dan ook zonder kleur af te lezen. */
+.patroon-pos-stip{stroke:#152033!important;stroke-width:2!important;stroke-dasharray:2 3!important}
+.patroon-neg-stip{stroke:#152033!important;stroke-width:2!important;stroke-dasharray:6 3!important}
+
+/* ---- #9: actie-knoppen in de topbar ---- */
+.actie-knoppen .seg button{cursor:pointer}
+
+/* ---- #11: presentatiemodus ---- */
+.pres{position:fixed;inset:0;z-index:2000;background:var(--blauw);color:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem}
+.pres[hidden]{display:none}
+.pres-slide{max-width:52rem}
+.pres-slide .pres-kicker{font-size:1rem;text-transform:uppercase;letter-spacing:2px;color:var(--oranje);font-weight:700;margin-bottom:.6rem}
+.pres-slide .pres-big{font-size:clamp(2.6rem,8vw,5.5rem);font-weight:800;line-height:1.05;margin:.2rem 0 .8rem}
+.pres-slide .pres-sub{font-size:clamp(1rem,2.6vw,1.4rem);color:#dfe4ff;max-width:40rem;margin:0 auto}
+.pres-slide .pres-lijst{margin:1.2rem auto 0;text-align:left;max-width:34rem;font-size:clamp(.95rem,2vw,1.2rem)}
+.pres-slide .pres-lijst li{margin:.35rem 0}
+.pres-slide .pres-lijst b{color:var(--oranje)}
+.pres-nav{position:absolute;bottom:1.4rem;display:flex;align-items:center;gap:1.2rem}
+.pres-nav button{background:#fff;color:var(--blauw);border:0;border-radius:6px;padding:.5rem 1rem;
+  font:inherit;font-weight:700;cursor:pointer;font-size:1rem}
+.pres-nav button:hover{background:var(--oranje);color:#fff}
+.pres-nav #pres-sluit{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5)}
+.pres-nav #pres-sluit:hover{background:rgba(255,255,255,.15)}
+#pres-teller{font-size:.85rem;color:#dfe4ff}
+body.pres-open{overflow:hidden}
+
+.kaart-uitleg{margin:.6rem .8rem;font-size:.78rem;color:var(--grijs)}
+.poswaarde{text-align:right}.poswaarde small{display:block;font-size:.65rem;color:var(--grijs)}

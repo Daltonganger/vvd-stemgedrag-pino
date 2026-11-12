@@ -1,0 +1,594 @@
+[
+  {
+    "id": "01",
+    "naam": "Basisschool De Regenboog",
+    "postcode": "2631BK",
+    "lat": 52.0447,
+    "lon": 4.39342,
+    "mobiel": false,
+    "kern": "Nootdorp",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "02",
+    "naam": "Parochiehuis",
+    "postcode": "2631CL",
+    "lat": 52.04876,
+    "lon": 4.38991,
+    "mobiel": false,
+    "kern": "Nootdorp",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "03",
+    "naam": "Nové Kerkelijk centrum",
+    "postcode": "2631CR",
+    "lat": 52.04311,
+    "lon": 4.39432,
+    "mobiel": false,
+    "kern": "Nootdorp",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "04",
+    "naam": "Jan Janssen Sporthal",
+    "postcode": "2631GA",
+    "lat": 52.04856,
+    "lon": 4.3943,
+    "mobiel": false,
+    "kern": "Nootdorp",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "05",
+    "naam": "Jan Janssen Sporthal (tijdelijk)",
+    "postcode": "2631GB",
+    "lat": 52.04586,
+    "lon": 4.39463,
+    "mobiel": false,
+    "kern": "Nootdorp",
+    "bron": "Bestaande locatie; postcode-indeling",
+    "aliases": [
+      "jan janssen sporthal"
+    ]
+  },
+  {
+    "id": "06",
+    "naam": "Woonzorgcentrum Veenhage",
+    "postcode": "2631GC",
+    "lat": 52.04522,
+    "lon": 4.39606,
+    "mobiel": false,
+    "kern": "Nootdorp",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "07",
+    "naam": "Basisschool de Winde",
+    "postcode": "2631GS",
+    "lat": 52.04751,
+    "lon": 4.39988,
+    "mobiel": false,
+    "kern": "Nootdorp",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "08",
+    "naam": "Basisschool De Regenboog",
+    "postcode": "2631PM",
+    "lat": 52.04519,
+    "lon": 4.41041,
+    "mobiel": false,
+    "kern": "Nootdorp",
+    "bron": "Bestaande locatie; postcode-indeling",
+    "aliases": [
+      "basisschool de regenboog"
+    ]
+  },
+  {
+    "id": "09",
+    "naam": "Sporthal 's-Gravenhout",
+    "postcode": "2631PT",
+    "lat": 52.04521,
+    "lon": 4.40611,
+    "mobiel": false,
+    "kern": "Nootdorp",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "10",
+    "naam": "Hotel van der Valk",
+    "postcode": "2632BD",
+    "lat": 52.05164,
+    "lon": 4.40663,
+    "mobiel": false,
+    "kern": "Nootdorp",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "11",
+    "naam": "Gymzaal Goudenregen",
+    "postcode": "2641AV",
+    "lat": 52.02111,
+    "lon": 4.42971,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "12",
+    "naam": "Sporthal De Viergang",
+    "postcode": "2641AZ",
+    "lat": 52.02441,
+    "lon": 4.41706,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "13",
+    "naam": "Hoge Noord (gymzaal)",
+    "postcode": "2641CA",
+    "lat": 52.02449,
+    "lon": 4.42932,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "14",
+    "naam": "Gebouw 't Prinsesje",
+    "postcode": "2641CB",
+    "lat": 52.02095,
+    "lon": 4.43232,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "15",
+    "naam": "Gemeentekantoor Pijnacker",
+    "postcode": "2641ED",
+    "lat": 52.01478,
+    "lon": 4.43705,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "16",
+    "naam": "Gemeentekantoor Pijnacker",
+    "postcode": "2641EZ",
+    "lat": 52.01299,
+    "lon": 4.43884,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling",
+    "aliases": [
+      "gemeentekantoor"
+    ]
+  },
+  {
+    "id": "17",
+    "naam": "Buurt & Zo (bibliotheek Oostland)",
+    "postcode": "2641HB",
+    "lat": 52.0167,
+    "lon": 4.43308,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "18",
+    "naam": "Buurt & Zo (bibliotheek Oostland)",
+    "postcode": "2641HK",
+    "lat": 52.01592,
+    "lon": 4.43449,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling",
+    "aliases": [
+      "buurt en zo"
+    ]
+  },
+  {
+    "id": "19",
+    "naam": "Sporthal 't Baken",
+    "postcode": "2641JN",
+    "lat": 52.01162,
+    "lon": 4.43654,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "20",
+    "naam": "Gemeentewerf",
+    "postcode": "2641KS",
+    "lat": 52.02822,
+    "lon": 4.44164,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "21",
+    "naam": "Gymzaal Daltonschool De Tweemaster",
+    "postcode": "2641MM",
+    "lat": 52.01747,
+    "lon": 4.44027,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "22",
+    "naam": "Buurtcentrum Het Oude Laarsje",
+    "postcode": "2641NS",
+    "lat": 51.98909,
+    "lon": 4.42764,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "23",
+    "naam": "Meersma Holding BV",
+    "postcode": "2641PE",
+    "lat": 52.03807,
+    "lon": 4.46515,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "24",
+    "naam": "Clubhuis De Plons",
+    "postcode": "2641ZA",
+    "lat": 52.02617,
+    "lon": 4.42194,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "25",
+    "naam": "Mariaschool",
+    "postcode": "2642CR",
+    "lat": 52.0128,
+    "lon": 4.45028,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "26",
+    "naam": "Wijkcentrum Tolhek",
+    "postcode": "2642JK",
+    "lat": 52.01015,
+    "lon": 4.45275,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "27",
+    "naam": "Ontmoetingskerk",
+    "postcode": "2642RA",
+    "lat": 52.01362,
+    "lon": 4.44263,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "28",
+    "naam": "Welzijnscentrum Keijzershof",
+    "postcode": "2643HD",
+    "lat": 52.00598,
+    "lon": 4.44413,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "29",
+    "naam": "Speellokaal Keizerskroon",
+    "postcode": "2643MC",
+    "lat": 52.0036,
+    "lon": 4.43862,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "30",
+    "naam": "Gebouw de Keet",
+    "postcode": "2645AS",
+    "lat": 52.01127,
+    "lon": 4.39605,
+    "mobiel": false,
+    "kern": "Delfgauw",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "31",
+    "naam": "Kerkgebouw Delfgauw",
+    "postcode": "2645BD",
+    "lat": 52.00733,
+    "lon": 4.39782,
+    "mobiel": false,
+    "kern": "Delfgauw",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "32",
+    "naam": "Sporthal Emerald",
+    "postcode": "2645HH",
+    "lat": 52.00386,
+    "lon": 4.39457,
+    "mobiel": false,
+    "kern": "Delfgauw",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "33",
+    "naam": "Wooncentrum Emerald",
+    "postcode": "2645HV",
+    "lat": 52.00442,
+    "lon": 4.39195,
+    "mobiel": false,
+    "kern": "Delfgauw",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "34",
+    "naam": "Gebouw Meikoninginlaan (voorheen consultatiebureau)",
+    "postcode": "2645NT",
+    "lat": 52.00838,
+    "lon": 4.40004,
+    "mobiel": false,
+    "kern": "Delfgauw",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "35",
+    "naam": "Briefstembureau 1 (10-3-2021 t/m 16-03-2021)",
+    "postcode": "",
+    "lat": null,
+    "lon": null,
+    "mobiel": true,
+    "kern": null,
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "36",
+    "naam": "Briefstembureau 2 (17-03-2021)",
+    "postcode": "",
+    "lat": null,
+    "lon": null,
+    "mobiel": true,
+    "kern": null,
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "37",
+    "naam": "Mobiel stembureau",
+    "postcode": "",
+    "lat": null,
+    "lon": null,
+    "mobiel": true,
+    "kern": null,
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "38",
+    "naam": "Stembureau voor de telling stembureau 31/32/33/34",
+    "postcode": "",
+    "lat": null,
+    "lon": null,
+    "mobiel": true,
+    "kern": null,
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "39",
+    "naam": "Stembureau voor de telling stembureau 41/42/43/44",
+    "postcode": "",
+    "lat": null,
+    "lon": null,
+    "mobiel": true,
+    "kern": null,
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "40",
+    "naam": "Basisschool De Schatkaart",
+    "postcode": "",
+    "lat": 52.02115,
+    "lon": 4.44002,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "41",
+    "naam": "Basisschool Sint Jozef",
+    "postcode": "",
+    "lat": 52.03517,
+    "lon": 4.41183,
+    "mobiel": false,
+    "kern": "Nootdorp",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "42",
+    "naam": "CulturA",
+    "postcode": "",
+    "lat": 52.04267,
+    "lon": 4.39361,
+    "mobiel": false,
+    "kern": "Nootdorp",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "43",
+    "naam": "Infocentrum Keijzershof",
+    "postcode": "",
+    "lat": 52.00445,
+    "lon": 4.44276,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "44",
+    "naam": "Kantine Meersma BV",
+    "postcode": "",
+    "lat": 52.00984,
+    "lon": 4.44463,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "45",
+    "naam": "Sociaal Cultureel centrum",
+    "postcode": "",
+    "lat": 52.01882,
+    "lon": 4.43221,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "46",
+    "naam": "Gemeentelijk servicepunt",
+    "postcode": "",
+    "lat": 52.01882,
+    "lon": 4.43221,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "47",
+    "naam": "Het Oude Laarsje",
+    "postcode": "",
+    "lat": 52.03975,
+    "lon": 4.38653,
+    "mobiel": false,
+    "kern": "Nootdorp",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "48",
+    "naam": "Hoofdgebouw Stichting Ipse",
+    "postcode": "",
+    "lat": 52.05165,
+    "lon": 4.40453,
+    "mobiel": false,
+    "kern": "Nootdorp",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "49",
+    "naam": "Infocentrum Tolhek",
+    "postcode": "",
+    "lat": 52.0098,
+    "lon": 4.45115,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "50",
+    "naam": "OBS de Tweemaster",
+    "postcode": "",
+    "lat": 52.02115,
+    "lon": 4.44002,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "51",
+    "naam": "Soc cult centrum",
+    "postcode": "",
+    "lat": 52.01882,
+    "lon": 4.43221,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "52",
+    "naam": "Sportzaal",
+    "postcode": "",
+    "lat": 52.0098,
+    "lon": 4.45115,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "53",
+    "naam": "Willem-Alexanderschool",
+    "postcode": "",
+    "lat": 52.01316,
+    "lon": 4.43935,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "54",
+    "naam": "Wooncentrum",
+    "postcode": "",
+    "lat": 52.01264,
+    "lon": 4.43597,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "55",
+    "naam": "t Hofland",
+    "postcode": "",
+    "lat": 52.01264,
+    "lon": 4.43597,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "56",
+    "naam": "t Prinsesje",
+    "postcode": "",
+    "lat": 52.02232,
+    "lon": 4.43201,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  },
+  {
+    "id": "57",
+    "naam": "SWOP St. Welzijn & Ondersteuning Pijnacker-Nootdorp",
+    "postcode": "2641DE",
+    "lat": 52.0214,
+    "lon": 4.43433,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Bestaande locatie; postcode-indeling"
+  },
+  {
+    "id": "58",
+    "naam": "Sportcomplex de Viergang",
+    "postcode": "",
+    "lat": 52.02606,
+    "lon": 4.42237,
+    "mobiel": false,
+    "kern": "Pijnacker",
+    "bron": "Handmatige locatie-indeling; zie docs/locaties.md"
+  }
+]

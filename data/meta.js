@@ -1,4 +1,2 @@
-/* AUTOMATISCH GEGENEREERD uit officiële Kiesraad EML (data.overheid.nl).
-   Bron-scripts: scripts/harvest.py + scripts/build_data.py. Niet met de hand bewerken;
-   draai de scripts opnieuw om bij te werken. Zie README.md. */
-const META = {"bijgewerkt": "2026-06-28", "verkiezingen": ["EP2024", "GR2014", "GR2018", "GR2022", "GR2026", "PS2023", "TK2021", "TK2023", "TK2025"], "controle": "ok"};
+/* Gegenereerd uit Kiesraad-brondata. Zie scripts/ en README.md. */
+const META = {"bijgewerkt": "2026-11-12T21:12:25.100789+00:00", "verkiezingen": ["EP2009", "EP2014", "EP2019", "EP2024", "GR2014", "GR2018", "GR2022", "GR2026", "PS2015", "PS2019", "PS2023", "TK2010", "TK2012", "TK2017", "TK2021", "TK2023", "TK2025"], "geverifieerd": ["EP2009", "EP2014", "EP2019", "EP2024", "GR2014", "GR2018", "GR2022", "GR2026", "PS2015", "PS2019", "PS2023", "TK2010", "TK2012", "TK2021", "TK2023", "TK2025"], "controle": "ok (16/17 geverifieerd)"};

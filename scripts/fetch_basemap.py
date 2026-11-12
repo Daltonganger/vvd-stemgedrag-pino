@@ -5,7 +5,8 @@ Bevat: water (vlakken + lijnen), wegen (hoofd + overig) en de kernen (labels).
 Volledig offline bruikbaar daarna — geen kaartserver meer nodig."""
 import os, json, urllib.request, urllib.parse, sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from common import ROOT as OUTPUT_ROOT
+ROOT = str(OUTPUT_ROOT)
 # Liggende rechthoek (breed, niet hoog) — volgt de vorm van de kaart-panel.
 WIJD = "51.950,4.140,52.090,4.710"   # BREED: hoofd-arteries + plaatsnamen -> vult links/rechts
 MID  = "51.960,4.270,52.080,4.580"   # ruim: overige wegen + water

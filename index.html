@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VVD Pijnacker-Nootdorp · Stemgedrag per stembureau</title>
 <link rel="icon" href="assets/vvd-logo.png">
-<link rel="stylesheet" href="vendor/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
-<link rel="stylesheet" href="style.css?v=20260706">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<!-- #21: cache-buster automatisch uit META.bijgewerkt (data/meta.js) — geen handmatige ?v= meer nodig -->
+<script src="data/meta.js"></script>
+<script>document.write('<link rel="stylesheet" href="style.css?v=' + encodeURIComponent(typeof META !== "undefined" ? META.bijgewerkt : Date.now()) + '">');</script>
 </head>
 <body>
 
@@ -32,6 +34,7 @@
         <option value="vspartij">VVD t.o.v. gekozen partij</option>
         <option value="opkomst">Opkomst per stembureau (indicatief — drukte)</option>
         <option value="kandidaat">Aandeel VVD-kandidaat (waar is kandidaat sterk)</option>
+        <option value="positie">Index stemverdeling (vaste CHES 2024-partijposities)</option>
       </select>
     </label>
     <label id="lbl-partij" hidden>Vergelijk partij
@@ -47,6 +50,13 @@
         <button type="button" data-w="stippen">Stippen</button>
       </span>
     </label>
+    <label class="actie-knoppen">Acties
+      <span class="seg">
+        <button type="button" id="btn-presentatie" title="Volledig-scherm verhaalmodus (pijltjestoetsen)">▶ Presentatie</button>
+        <button type="button" id="btn-png" title="Exporteer de kaart als PNG-afbeelding">⭳ Kaart PNG</button>
+        <button type="button" id="btn-link" title="Kopieer een deelbare link naar deze weergave">🔗 Link</button>
+      </span>
+    </label>
     <fieldset id="niveau-filter">
       <legend>Toon niveaus</legend>
       <label><input type="checkbox" value="EP" checked> Europees</label>
@@ -59,6 +69,7 @@
 
 <main>
   <section class="panel map-panel">
+    <p class="kaart-uitleg">Vlakken zijn nabijheidsgebieden rond stemlocaties, geen woongebieden van kiezers. Partijpercentages laten geen individuele kiezersstromen zien.</p>
     <div id="map"></div>
     <div id="legend" class="legend"></div>
   </section>
@@ -72,6 +83,11 @@
       <h2 id="kern-title">Per kern</h2>
       <div id="kern-body"></div>
     </div>
+    <div class="card" id="positie-card">
+      <h2>Index stemverdeling — gemeente (links ↔ rechts)</h2>
+      <div id="positie-body"></div>
+      <p class="hint">Gewogen index met vaste CHES 2024-partijposities (0=links, 10=rechts), ook voor oudere jaren. Dit meet geen historische verandering van partijstandpunten. JA21 gebruikt ParlGov 2023. Partijen zonder score tellen niet mee; dekking is het aandeel stemmen met een score.</p>
+    </div>
     <div class="card" id="movers-card" hidden>
       <h2 id="movers-title">Stijgers &amp; dalers</h2>
       <div id="movers-body"></div>
@@ -79,7 +95,7 @@
     <div class="card">
       <h2 id="chart-title">Klik een stembureau</h2>
       <canvas id="chart" height="190"></canvas>
-      <p class="hint">Klik een stip op de kaart of een rij in de tabel.</p>
+      <p class="hint">Klik een stemlocatie of tabelrij. Verkiezingen zijn per niveau gegroepeerd; lijnen verbinden alleen hetzelfde niveau.</p>
     </div>
     <div class="card" id="partijen-card" hidden>
       <h2 id="partijen-title">Partijen hier</h2>
@@ -95,7 +111,10 @@
 <section class="panel table-panel">
   <div class="table-head">
     <h2>VVD per stembureau — aantallen &amp; percentages</h2>
-    <button id="btn-csv">⭳ Download CSV</button>
+    <span class="csv-knoppen">
+      <button id="btn-csv">⭳ Download CSV</button>
+      <button id="btn-csv-partijen" title="Lang formaat: één regel per stembureau × verkiezing × partij">⭳ CSV per partij</button>
+    </span>
   </div>
   <div class="table-wrap">
     <table id="tabel"></table>
@@ -120,27 +139,45 @@
   Gemaakt door <a href="https://www.rubenbeuker.nl" target="_blank" rel="noopener">Ruben Beuker</a> · © 2026 · www.rubenbeuker.nl
 </footer>
 
-<script src="vendor/leaflet.js" integrity="sha384-MqBTuoPK56hXSXu+CBGieY4+YmVJ9nPtRptTkiuNSz3t1YCzASShUH1ex3Rgcf2u" crossorigin="anonymous"></script>
-<script src="vendor/chart.umd.min.js" integrity="sha384-gfXUqR5vZoGaSWfnt7sdtbok7tYQpPWuRu+iOZgEc+cZmK90gnHyalBH/o7aTyiw" crossorigin="anonymous"></script>
+<!-- #11: presentatiemodus — volledig-scherm overlay, 4 schermen, pijltjestoetsen -->
+<div id="presentatie" class="pres" hidden role="dialog" aria-modal="true" aria-label="Presentatiemodus">
+  <div class="pres-slide" id="pres-slide"></div>
+  <div class="pres-nav">
+    <button type="button" id="pres-prev" aria-label="Vorig scherm">←</button>
+    <span id="pres-teller">1 / 4</span>
+    <button type="button" id="pres-next" aria-label="Volgend scherm">→</button>
+    <button type="button" id="pres-sluit" aria-label="Sluit presentatiemodus (Esc)">✕ Sluit</button>
+  </div>
+</div>
+<div id="live" class="visually-hidden" aria-live="polite"></div>
+
+<script src="vendor/leaflet.js"></script>
+<script src="vendor/chart.umd.min.js"></script>
 <script src="data/stembureaus.js"></script>
 <script src="data/uitslagen.js"></script>
 <script src="data/kandidaten.js"></script>
-<script src="data/meta.js"></script>
+<script src="data/partijen_lr.js"></script>
+<!-- meta.js is al in <head> geladen voor de cache-buster (#21) -->
 <script>
 /* #15 — kies de basiskaart vóór het laden: licht bestand (~4 MB) op mobiel / databesparing /
    trage verbinding, vol bestand (~8 MB) op de rest. Handmatige override in localStorage. */
 (function () {
-  var pref = localStorage.getItem("kaartdetail") || "auto";
+  var pref = "auto";
+  try { pref = localStorage.getItem("kaartdetail") || "auto"; } catch (e) { /* Opslag is optioneel. */ }
   var c = navigator.connection || {};
   var autoLicht = !!c.saveData || /(^|-)[23]g$/.test(c.effectiveType || "") ||
                   matchMedia("(max-width:860px)").matches;
   var licht = pref === "licht" || (pref === "auto" && autoLicht);
-  var v = (typeof META !== "undefined" && META.bijgewerkt) ? "?v=" + META.bijgewerkt : "";
+  var v = (typeof META !== "undefined" && META.bijgewerkt) ? "?v=" + encodeURIComponent(META.bijgewerkt) : "";
   document.write('<script src="data/basemap' + (licht ? ".lite" : "") + '.js' + v + '"><\/script>');
 })();
 </script>
 <script src="data/gebieden.js"></script>
-<!-- ?v bumpen bij redeploy zodat browsers verse app.js/style.css laden (GitHub Pages cachet) -->
-<script src="app.js?v=20260706"></script>
+<!-- Klassieke scripts houden dubbelklikken (file://) volledig offline bruikbaar. -->
+<script>
+["model.js", "presentatie.js", "export.js", "app.js"].forEach(function (file) {
+  document.write('<script src="' + file + '?v=' + encodeURIComponent(META.bijgewerkt) + '"><\/script>');
+});
+</script>
 </body>
 </html>

@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Maakt de site volledig offline-bruikbaar (presentatie-proof):
 - vendor Leaflet + Chart.js naar /vendor
-- download OpenStreetMap-tegels voor Pijnacker-Nootdorp naar /tiles (z12-15)
-Eenmalig draaien; daarna werkt de kaart zonder internet."""
-import os, math, time, urllib.request, sys
+De kaart zelf is een offline VECTOR-basiskaart (data/basemap.js via scripts/fetch_basemap.py)
+i.p.v. rastertegels — OSM-tegels mogen niet in bulk gedownload worden.
+Eenmalig draaien; daarna werkt de site zonder internet."""
+import os, urllib.request, sys, json, hashlib
+from common import SOURCE_ROOT
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from common import ROOT as OUTPUT_ROOT
+ROOT = str(OUTPUT_ROOT)
 UA = "VVD-PijnackerNootdorp-offline-map/1.0 (interne presentatie)"
 
 def fetch(url, dest, binary=True):
@@ -23,11 +26,14 @@ LIBS = {
     "vendor/leaflet.css": "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
     "vendor/chart.umd.min.js": "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js",
 }
+hashes = json.loads((SOURCE_ROOT / "config/vendor-sha256.json").read_text())
 print("== libraries ==")
 for dest, url in LIBS.items():
     got = fetch(url, os.path.join(ROOT, dest))
+    actual = hashlib.sha256(open(os.path.join(ROOT, dest), "rb").read()).hexdigest()
+    if actual != hashes[dest]:
+        sys.exit("Library wijkt af van de vastgelegde hash: " + dest)
     print(("  gedownload " if got else "  bestaat al ") + dest)
 
 print()
 print("Libraries gevendord. Voor de offline KAART: draai scripts/fetch_basemap.py")
-print("(OSM-rastertegels mogen niet in bulk; we gebruiken een vector-basiskaart via Overpass).")

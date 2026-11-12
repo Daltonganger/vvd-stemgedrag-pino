@@ -7,7 +7,8 @@ Werkt op de al gegenereerde basemap.js (geen Overpass nodig). Draait mee in upda
 Knop om aan te draaien: EPS (graden; ~0.0001° ≈ 11 m)."""
 import os, json, sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from common import ROOT as OUTPUT_ROOT
+ROOT = str(OUTPUT_ROOT)
 EPS = float(sys.argv[1]) if len(sys.argv) > 1 else 0.002  # ponytail: tolerantie in graden (~0.0001°≈11m) -> lite ≈1.98 MB (<2 MB). Hoger = kleiner+grover.
 DROP = {"roads_minor", "paths"}  # fijn detail dat in lite helemaal wegvalt
 
