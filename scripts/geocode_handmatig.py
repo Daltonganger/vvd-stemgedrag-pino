@@ -2,8 +2,8 @@
 """#23 — Handmatig opgezochte adressen voor de stemlocaties zonder (betrouwbaar) coördinaat.
 Adressen handmatig geverifieerd via officiele bronnen (gemeente Pijnacker-Nootdorp
 processen-verbaal PDFs, cultuuraenzo.nl, ipsedebruggen.nl, opendi.nl, delftopzondag.nl,
-telstar-online.nl, AD.nl). Coördinaten via PDOK op het exacte adres; alles binnen de
-gemeentegrens-bbox gevalideerd.
+telstar-online.nl, AD.nl). Coördinaten via PDOK op het exacte adres; gefilterd op een ruime zoekrechthoek. Dit is geen controle op de echte
+gemeentegrens; controleer de wijzigingen in config/locaties.json.
 Gebruik:  python3 scripts/geocode_handmatig.py"""
 import json, os, re, sys, time, urllib.request, urllib.parse
 

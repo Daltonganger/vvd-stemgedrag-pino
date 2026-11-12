@@ -5,19 +5,19 @@ per stembureau. Schrijft /tmp/all_rows.json."""
 import urllib.request, urllib.parse, json, io, zipfile, re, sys, time
 from common import RAW_DIR
 
-def fetch_url(url, timeout=300, tries=4):
-    """Zelfde retry-logica als fetch(), maar met URL-encoding van de bestandsnaam
-    (data.overheid.nl levert '... (Deel 1).zip' alleen als '%28Deel%201%29.zip')."""
-    path = url.split("/")
-    enc = "/".join(path[:-1]) + "/" + urllib.parse.quote(urllib.parse.unquote(path[-1]), safe="")
+def fetch_url(url, timeout=300, tries_per_url=4):
+    """Encodeer het pad één keer; probeer iedere unieke URL maximaal tries_per_url keer."""
+    parts = urllib.parse.urlsplit(url)
+    path = urllib.parse.quote(urllib.parse.unquote(parts.path), safe="/")
+    enc = urllib.parse.urlunsplit(parts._replace(path=path))
     last = None
-    for candidate in (enc, url):
-        for i in range(tries):
+    for candidate in dict.fromkeys((enc, url)):
+        for i in range(tries_per_url):
             try:
                 return urllib.request.urlopen(urllib.request.Request(candidate, headers=UA), timeout=timeout).read()
             except Exception as e:
                 last = e
-                print(f"   retry {i+1}/{tries} ({e})", file=sys.stderr)
+                print(f"   retry {i+1}/{tries_per_url} ({e})", file=sys.stderr)
                 time.sleep(2 * (i + 1))
     raise last
 import xml.etree.ElementTree as ET

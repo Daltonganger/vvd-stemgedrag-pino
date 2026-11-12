@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""#21 — Tweede geocode-poging voor locaties zonder coördinaat in data/stembureaus.js.
+"""#21 — Tweede geocode-poging voor locaties zonder coördinaat in config/locaties.json.
 Probeert extra naamvarianten (zonder 'Basisschool'/'Sportzaal', met kern-naam erachter,
 kale kern-naam) via de PDOK Locatieserver. Weigert gemeente/woonplaats-treffers.
 Gebruik:  python3 scripts/geocode_retry.py"""

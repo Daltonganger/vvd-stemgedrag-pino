@@ -45,6 +45,19 @@ class PipelineTests(unittest.TestCase):
         result = build_data.build([{**self.row, 'uitgebracht': 0}], self.locations, {}, {}, {'GR2026'})
         self.assertIsNone(result[1][0]['uitgebracht'])
 
+    def test_download_encoding_preserves_query_and_existing_escapes(self):
+        response = io.BytesIO(b'archive')
+        with patch.object(harvest.urllib.request, 'urlopen', return_value=response) as request:
+            self.assertEqual(harvest.fetch_url('https://example.org/a%20b.zip?download=1'), b'archive')
+        self.assertEqual(request.call_args.args[0].full_url, 'https://example.org/a%20b.zip?download=1')
+
+    def test_retry_count_is_per_unique_url(self):
+        with patch.object(harvest.urllib.request, 'urlopen', side_effect=OSError('offline')) as request, \
+             patch.object(harvest.time, 'sleep'), contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(OSError):
+                harvest.fetch_url('https://example.org/archive.zip', tries_per_url=2)
+        self.assertEqual(request.call_count, 2)
+
     def test_harvest_failure_preserves_raw_files(self):
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)
