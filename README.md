@@ -90,8 +90,9 @@ publicatie bij voorkeur de master.
 Handmatige geocodecorrecties staan in het locatieregister en blijven behouden.
 De geocodescripts zijn onderhoudshulpmiddelen voor dat register; ze hoeven niet
 bij iedere build opnieuw online te zoeken. Libraryversies zijn vastgelegd in
-`fetch_offline.py`, checksums in `config/vendor-sha256.json`. De browser laadt ze
-zonder CORS/SRI om `file://` te ondersteunen; de build en CI controleren de hashes.
+`fetch_offline.py`, checksums in `config/vendor-sha256.json`. Via HTTP/HTTPS laadt de browser ze met SHA-384-SRI en `crossorigin="anonymous"`.
+Alleen bij `file://` vervallen die attributen om offline dubbelklikken te ondersteunen.
+De build en CI controleren zowel de SHA-256-checksums als de SHA-384-SRI-hashes.
 
 ## Ontwikkelen en controleren
 

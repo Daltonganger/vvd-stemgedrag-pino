@@ -18,7 +18,8 @@ De reviewpunten zijn verwerkt in de branch. De concrete controles staan in
 - Het gemiddelde over alle verkiezingen is verwijderd. Lijnen verbinden alleen
   hetzelfde verkiezingsniveau. Uitleg onderscheidt vaste partijposities van een
   historische ideologiemeting en partijverdeling van kiezersstromen.
-- `file://` werkt met lokale libraries; librarychecksums worden in build/CI bewaakt.
+- `file://` werkt met lokale libraries; HTTP/HTTPS gebruikt SRI. Beide hashsets
+  worden in build/CI bewaakt.
 - Bouwpad is projectrelatief; tijdelijke build, volledigheidscontrole en rollback
   beschermen bestaande uitvoer. De losse merge controleert vóór schrijven.
 - Locatie-ID's en handmatige correcties staan in een blijvend register.

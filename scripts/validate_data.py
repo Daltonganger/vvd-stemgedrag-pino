@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Controleer de publiceerbare dataset en lokale libraries zonder netwerk."""
+import base64
 import hashlib
 import json
 from common import ROOT, SOURCE_ROOT, read_js, validate_totals
@@ -34,6 +35,8 @@ def validate(root=ROOT):
     assert elections == {kind + str(year) for _, kind, year in DATASETS}, 'Onvolledige verkiezingsset'
     assert elections == set(meta['verkiezingen']) == set(areas), 'Metadata/gebieden wijken af'
     assert set(meta['geverifieerd']) <= elections, 'Onbekende geverifieerde verkiezing'
+    expected_control = f'ok ({len(meta["geverifieerd"])}/{len(elections)} totalen kloppen)'
+    assert meta['controle'] == expected_control, 'Controletekst overschat bronverificatie'
     assert positions and all(0 <= value <= 10 for value in positions.values()), 'Ongeldige partijposities'
     for election, cells in areas.items():
         active = {r['sb'] for r in results if r['soort'] + str(r['jaar']) == election}
@@ -41,8 +44,12 @@ def validate(root=ROOT):
             assert cell['sb'] in active, 'Gebied zonder actieve uitslag'
             assert cell['polys'] and all(len(ring) >= 3 for ring in cell['polys']), 'Lege geometrie'
     hashes = json.loads((SOURCE_ROOT / 'config/vendor-sha256.json').read_text())
+    html = (SOURCE_ROOT / 'index.html').read_text()
     for file, expected in hashes.items():
-        assert hashlib.sha256((root / file).read_bytes()).hexdigest() == expected, f'Library-hash: {file}'
+        content = (root / file).read_bytes()
+        assert hashlib.sha256(content).hexdigest() == expected, f'Library-hash: {file}'
+        sri = 'sha384-' + base64.b64encode(hashlib.sha384(content).digest()).decode()
+        assert sri in html, f'SRI-hash ontbreekt of wijkt af: {file}'
     return len(stations), len(results), len(elections)
 
 

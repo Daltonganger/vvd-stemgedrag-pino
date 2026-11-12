@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VVD Pijnacker-Nootdorp · Stemgedrag per stembureau</title>
 <link rel="icon" href="assets/vvd-logo.png">
-<link rel="stylesheet" href="vendor/leaflet.css">
+<script>
+// SRI beschermt de publiek gehoste site. file:// ondersteunt deze CORS-aanvragen niet.
+function vendorIntegrity(hash) {
+  return /^https?:$/.test(location.protocol) ? ' integrity="' + hash + '" crossorigin="anonymous"' : '';
+}
+document.write('<link rel="stylesheet" href="vendor/leaflet.css"' + vendorIntegrity("sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H") + '>');
+</script>
 <!-- #21: cache-buster automatisch uit META.bijgewerkt (data/meta.js) — geen handmatige ?v= meer nodig -->
 <script src="data/meta.js"></script>
 <script>document.write('<link rel="stylesheet" href="style.css?v=' + encodeURIComponent(typeof META !== "undefined" ? META.bijgewerkt : Date.now()) + '">');</script>
@@ -151,8 +157,8 @@
 </div>
 <div id="live" class="visually-hidden" aria-live="polite"></div>
 
-<script src="vendor/leaflet.js"></script>
-<script src="vendor/chart.umd.min.js"></script>
+<script>document.write('<script src="vendor/leaflet.js"' + vendorIntegrity("sha384-MqBTuoPK56hXSXu+CBGieY4+YmVJ9nPtRptTkiuNSz3t1YCzASShUH1ex3Rgcf2u") + '><\/script>');</script>
+<script>document.write('<script src="vendor/chart.umd.min.js"' + vendorIntegrity("sha384-gfXUqR5vZoGaSWfnt7sdtbok7tYQpPWuRu+iOZgEc+cZmK90gnHyalBH/o7aTyiw") + '><\/script>');</script>
 <script src="data/stembureaus.js"></script>
 <script src="data/uitslagen.js"></script>
 <script src="data/kandidaten.js"></script>

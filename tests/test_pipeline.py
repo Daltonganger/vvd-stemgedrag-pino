@@ -29,6 +29,10 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(a[0][0]['id'], self.locations[0]['id'])
         self.assertEqual(a[0][0]['lat'], self.locations[0]['lat'])
 
+    def test_build_control_text_describes_totals_not_source_verification(self):
+        output = build_data.build([self.row], self.locations, {}, {'GR2026': {'vvd': 5, 'geldig': 20}}, {'GR2026'})
+        self.assertEqual(output[3]['controle'], 'ok (1/1 totalen kloppen)')
+
     def test_unknown_location_stops_build(self):
         with self.assertRaisesRegex(ValueError, 'Onbekende locatie'):
             build_data.build([{**self.row, 'naam': 'Een onbekend gebouw'}], self.locations, {}, {}, {'GR2026'})
@@ -92,6 +96,21 @@ class PipelineTests(unittest.TestCase):
                                     env={**os.environ, 'PINO_OUTPUT_ROOT': str(root), 'PINO_RAW_DIR': str(root / 'raw')}, capture_output=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(before, {p.name: p.read_bytes() for p in (root / 'data').iterdir()})
+
+    def test_successful_merge_writes_cautious_control_text(self):
+        import os
+        import subprocess
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); (root / 'data').mkdir(); (root / 'raw').mkdir()
+            for file in ('stembureaus', 'uitslagen', 'kandidaten', 'meta'):
+                (root / 'data' / (file + '.js')).write_bytes((SOURCE_ROOT / 'data' / (file + '.js')).read_bytes())
+            for name, value in [('all_rows', [self.row]), ('kandidaten', {}), ('totalen', {'GR2026': {'vvd': 5, 'geldig': 20}})]:
+                (root / 'raw' / (name + '.json')).write_text(json.dumps(value))
+            result = subprocess.run([sys.executable, str(SOURCE_ROOT / 'scripts/merge_election.py'), 'GR', '2026'],
+                                    env={**os.environ, 'PINO_OUTPUT_ROOT': str(root), 'PINO_RAW_DIR': str(root / 'raw')}, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stderr.decode())
+            meta = read_js(root / 'data/meta.js', 'META')
+            self.assertEqual(meta['controle'], 'ok (16/17 totalen kloppen)')
 
     def test_publish_failure_rolls_back_both_directories(self):
         with tempfile.TemporaryDirectory() as temporary:
