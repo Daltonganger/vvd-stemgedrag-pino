@@ -58,7 +58,7 @@ def build(rows, locations, candidates, references, expected):
     verified = sorted(set(totals) & references.keys())
     meta = {'bijgewerkt': datetime.datetime.now(datetime.timezone.utc).isoformat(),
             'verkiezingen': sorted(totals), 'geverifieerd': verified,
-            'controle': f'ok ({len(verified)}/{len(totals)} geverifieerd)'}
+            'controle': f'ok ({len(verified)}/{len(totals)} totalen kloppen)'}
     used = {row['sb'] for row in results}
     stations = [{k: v for k, v in location.items() if k not in ('aliases', 'bron')}
                 for location in locations if location['id'] in used]

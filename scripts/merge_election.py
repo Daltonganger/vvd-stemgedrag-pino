@@ -33,7 +33,7 @@ def main():
         verified.add(election)
     meta.update(bijgewerkt=datetime.datetime.now(datetime.timezone.utc).isoformat(),
                 geverifieerd=sorted(verified),
-                controle=f'ok ({len(verified)}/{len(meta["verkiezingen"])} geverifieerd)')
+                controle=f'ok ({len(verified)}/{len(meta["verkiezingen"])} totalen kloppen)')
     # Alle controles zijn afgerond voordat het eerste bestand wordt vervangen.
     for name, variable, value in [('stembureaus', 'STEMBUREAUS', list(existing_stations.values())),
                                   ('uitslagen', 'UITSLAGEN', results),

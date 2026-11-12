@@ -17,6 +17,29 @@ test.afterEach(async ({ page }) => {
   expect(await page.evaluate(() => window.__pageErrors)).toEqual([]);
 });
 
+test('HTTP gebruikt de juiste SRI-hashes voor alle drie lokale libraries', async ({ page }) => {
+  const crypto = require('node:crypto');
+  for (const file of ['leaflet.css', 'leaflet.js', 'chart.umd.min.js']) {
+    const content = await fs.readFile(path.resolve('vendor', file));
+    const hash = 'sha384-' + crypto.createHash('sha384').update(content).digest('base64');
+    const selector = file.endsWith('.css') ? `link[href="vendor/${file}"]` : `script[src="vendor/${file}"]`;
+    await expect(page.locator(selector)).toHaveAttribute('integrity', hash);
+    await expect(page.locator(selector)).toHaveAttribute('crossorigin', 'anonymous');
+  }
+});
+
+test('SRI blokkeert een aangepaste library via HTTP', async ({ browser }) => {
+  const context = await browser.newContext();
+  const target = await context.newPage();
+  await target.route('**/vendor/leaflet.js', (route) => route.fulfill({
+    contentType: 'text/javascript', body: 'window.tamperedVendorExecuted = true;',
+  }));
+  await target.goto('http://127.0.0.1:8765/');
+  expect(await target.evaluate(() => typeof L)).toBe('undefined');
+  expect(await target.evaluate(() => window.tamperedVendorExecuted)).toBeUndefined();
+  await context.close();
+});
+
 test('alle 459 verkiezing/metric/weergave-combinaties en lege waarden renderen', async ({ page }) => {
   const result = await page.evaluate(() => {
     let checked = 0;
@@ -135,6 +158,11 @@ test('dubbelklikken op index werkt offline met kaart, grafiek en export', async 
   page.on('request', (r) => { if (/^https?:/.test(r.url())) remote.push(r.url()); });
   await page.goto(pathToFileURL(path.resolve('index.html')).href);
   await expect(page.locator('#tabel tbody tr')).toHaveCount(58);
+  for (const file of ['leaflet.css', 'leaflet.js', 'chart.umd.min.js']) {
+    const selector = file.endsWith('.css') ? `link[href="vendor/${file}"]` : `script[src="vendor/${file}"]`;
+    await expect(page.locator(selector)).not.toHaveAttribute('integrity');
+    await expect(page.locator(selector)).not.toHaveAttribute('crossorigin');
+  }
   await page.locator('#tabel tbody tr[data-sb="01"]').click();
   expect(await page.evaluate(() => !!chart)).toBe(true);
   expect(await page.evaluate(() => maakKaartPng().toDataURL().startsWith('data:image/png'))).toBe(true);
