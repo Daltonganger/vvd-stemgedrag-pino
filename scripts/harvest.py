@@ -136,9 +136,7 @@ def totaal_from_zip(zbytes):
                        if re.search(r"totaaltelling_\w+_gemeente_pijnacker.?nootdorp\.eml\.xml$", n.lower())), None)
     if not target:
         return None
-    root = ET.fromstring(zf.read(target))
-    if root is None:
-        return None
+    root = ET.fromstring(zf.read(target))   # gooit bij ongeldige XML; geeft nooit None
     tv = next((r for r in root.iter() if local(r.tag) == "TotalVotes"), None)
     if tv is None:
         return None

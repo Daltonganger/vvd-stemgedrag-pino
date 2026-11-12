@@ -278,11 +278,11 @@ function tekenKaart() {
         m.bindPopup(() => popupHtml(s), { maxWidth: 300 });
         m.on("click", () => selecteer(s.id));
         markers.set(s.id, m);
-        // #8: divergente stip krijgt een patroon-stroke (kleur + vorm)
-        const pk = patroonKlasse(val);
-        if (pk) m.on("add", () => { const el = m.getElement(); if (el) el.classList.add(pk + "-stip"); });
       } else m.setStyle(opts).setRadius(r);
       m.addTo(markerLaag);
+      // #8/#4: patroon bij ELKE teken-ronde opnieuw zetten (markers worden gecachet,
+      // dus een class die alleen bij creatie gezet wordt blijft hangen bij metric-wissel)
+      zetPatroon(m, val, true);
     }
   }
 
@@ -294,14 +294,13 @@ function tekenKaart() {
       const style = { color: "#fff", weight: weergave === "kernen" ? 0.5 : 1, fillColor: colorFor(val, lo, hi, maxAbs), fillOpacity: val == null ? 0.5 : 0.78 };
       const latlngs = c.polys.map((poly) => poly.map(([lon, lat]) => [lat, lon]));
       const pol = L.polygon(latlngs, style);
-      // #8: divergent vlak krijgt een SVG-patroon (kleur + vorm; ook leesbaar in grijswaarden)
-      const pk = patroonKlasse(val);
-      if (pk) pol.on("add", () => { const el = pol.getElement(); if (el) el.classList.add(pk); });
       const popupDoel = sbById.get(doel) ? doel : c.sb;
       pol.bindPopup(() => popupHtml(sbById.get(popupDoel)), { maxWidth: 300 });
       pol.on("click", () => selecteer(popupDoel));
       gebiedVanSb.set(popupDoel, pol);
       pol.addTo(gebiedLaag);
+      // #8/#4: patroon bij elke teken-ronde opnieuw zetten
+      zetPatroon(pol, val, false);
     }
   }
 
@@ -386,7 +385,6 @@ function tekenPositieOverzicht() {
     }).join("") + `</div>`;
   };
   const niveau = (soort) => ELECTIONS.filter((e) => e.soort === soort).map((e) => e.id);
-  const alles = ELECTIONS.map((e) => e.id);
   // alles-samen: gewogen over alle verkiezingen heen
   let som = 0, gedekt = 0;
   for (const s of STEMBUREAUS) for (const e of ELECTIONS) {
@@ -644,6 +642,24 @@ function voegPatronenToe() {
 voegPatronenToe();
 // #8: in tekenKaart — divergente metrics krijgen een patroon-klasse (werkt ook in grijswaarden)
 const patroonKlasse = (val) => isDiverging() && val != null ? (val >= 0 ? "patroon-pos" : "patroon-neg") : "";
+// #4: patroon moet bij ELKE teken-ronde opnieuw gezet worden, niet alleen bij creatie.
+// Leaflet-lagen worden gecachet/hergebruikt, dus een class die bij creatie is toegevoegd
+// blijft staan als de metric later niet-divergent wordt (en omgekeerd).
+function zetPatroon(laag, val, isStip) {
+  const suffix = isStip ? "-stip" : "";
+  const wil = patroonKlasse(val);
+  const alle = ["patroon-pos", "patroon-neg"].map((k) => k + suffix);
+  const toepassen = () => {
+    const el = laag.getElement && laag.getElement();
+    if (!el || !el.classList) return;
+    el.classList.remove(...alle);
+    if (wil) el.classList.add(wil + suffix);
+  };
+  toepassen();                       // meteen, als het element er al is
+  laag.off("add", laag._patroonHerkans);   // oude handler opruimen
+  laag._patroonHerkans = toepassen;        // pas toe zodra het element in de DOM staat
+  laag.on("add", laag._patroonHerkans);
+}
 
 /* ---------------- #9: permalink (URL-hash) ---------------- */
 function leesHash() {
@@ -744,7 +760,7 @@ function meld(t) { const l = document.getElementById("live"); l.textContent = ""
 const presVragen = () => {
   const e = ELECTIONS.find((x) => x.id === huidige), g = gemAvg[huidige];
   const lijst = STEMBUREAUS.map((s) => ({ s, p: pctOf(s.id, huidige) })).filter((x) => x.p != null).sort((a, b) => b.p - a.p);
-  const top = lijst.slice(0, 3), laag = lijst.slice(-3).reverse();
+  const top = lijst.slice(0, 3);
   const pr = prevSameSoort(e);
   const dalers = pr ? STEMBUREAUS.filter((s) => !s.mobiel).map((s) => {
     const a = pctOf(s.id, huidige), b = pctOf(s.id, pr);
@@ -872,8 +888,13 @@ let herteken = function () { vulPartijKeuze(); vulKandidaatKeuze(); tekenKaart()
   if (typeof META !== "undefined") {
     const nG = (META.geverifieerd || []).length, nT = (META.verkiezingen || []).length;
     const ok = /^ok/.test(META.controle || "");
+    // Eerlijk over de bron: bij de meeste verkiezingen is het referentietotaal afgeleid uit
+    // dezelfde gemeentetelling, dus dit vangt parse-fouten — niet of de bron zelf klopt.
+    const uitleg = "De som per stembureau is gecontroleerd tegen het gemeentetotaal. " +
+      "Bij verkiezingen met een aparte Totaaltelling (GR2014/GR2018/GR2026) is dat een " +
+      "onafhankelijke bron; bij de overige is het referentietotaal uit dezelfde telling afgeleid.";
     document.getElementById("meta-info").innerHTML =
-      ` · Laatst bijgewerkt: ${META.bijgewerkt} · integriteitscheck: <b style="color:${ok ? "#1e8449" : "#c0392b"}">${ok ? `✓ ${nG}/${nT} verified tegen officiële totalen` : META.controle}</b>`;
+      ` · Laatst bijgewerkt: ${META.bijgewerkt} · integriteitscheck: <b style="color:${ok ? "#1e8449" : "#c0392b"}" title="${uitleg}">${ok ? `✓ ${nG}/${nT} totalen kloppen` : META.controle}</b>`;
   }
   herteken();
   // #9: kwam de selectie uit de permalink? Dan meteen grafiek + partijen tonen.

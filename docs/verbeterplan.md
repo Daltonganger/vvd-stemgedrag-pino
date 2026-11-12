@@ -68,8 +68,10 @@ over 16/17 verkiezingen (TK2017 CSV-bron heeft geen kandidaatkolommen).
 
 ### #22. Eerlijke integriteitscheck — GEDAAN
 Referentie-totaal wordt uit de gemeente-telling zelf afgeleid (`totaal_from_telling`)
-voor zips zonder aparte Totaaltelling → **16/17 verkiezingen geverifieerd**; footer toont
-`✓ 16/17 verified tegen officiële totalen`.
+voor zips zonder aparte Totaaltelling → **16/17 verkiezingen met kloppend totaal**; footer toont
+`✓ 16/17 totalen kloppen`. Let op de beperking: bij 13 van die 16 is het referentietotaal
+afgeleid uit dezelfde gemeentetelling, dus die controle vangt parse-fouten maar zegt niets over
+de bron zelf. Alleen GR2014/GR2018/GR2026 hebben een écht onafhankelijke Totaaltelling.
 
 ### #23. Alle stemlocaties handmatig gelokaliseerd — GEDAAN
 `scripts/geocode_handmatig.py`: 13 locaties met handmatig geverifieerde adressen
@@ -97,6 +99,23 @@ tabelkolom, popup-regel met dekking, samenvattingsrij, lijn in de grafiek (tweed
 en zijpaneel met per-niveau- en alles-samen-overzicht. Lokale partijen zonder score
 tellen niet mee; dekking (% stemmen mét score) wordt overal getoond
 (bv. GR2026 ≈ 65%, TK/EP ≈ 98%).
+
+### #24. Review-fixes op de PR — GEDAAN
+Kritische review van de hele PR vond drie echte fouten:
+1. **Presentatiemodus crashte** op scherm 4: `gemPositie.dekking` was `null` maar werd met
+   `.toFixed(0)` gebruikt. Dekking wordt nu echt berekend.
+2. **EP-posities waren structureel fout**: de Europese lijstnamen (`VVD - Europese
+   Liberaal-Democraten`, `Christen Democratisch Appèl (CDA)`,
+   `P.v.d.A./Europese Sociaaldemocraten`, `Democraten 66 (D66) - ALDE`) zaten niet in de
+   alias-tabel, waardoor VVD/CDA/PvdA/D66 uit elke EP-berekening vielen. Dekking EP ging van
+   69–80% naar **95–98%**; de gemeenteposities verschoven wezenlijk
+   (EP2009 5.58→5.69, EP2014 5.96→5.49, EP2019 6.21→5.70).
+3. **Permalink werkte niet** voor metric/weergave: die handlers schreven de hash nooit, en
+   `leesHash()` zette de dropdowns niet terug.
+Verder: patroon-classes op kaartlagen blijven niet meer hangen bij het wisselen van metric
+(ze worden nu elke teken-ronde gezet/verwijderd), stippen gebruiken een gestreepte rand in
+plaats van een onwerkbaar SVG-stroke-patroon, ongebruikte variabelen en dode code verwijderd,
+en de integriteitsclaim in de footer is afgezwakt naar wat de controle echt aantoont.
 
 ### #8. Kleurenblind-veilig + toegankelijkheid — GEDAAN
 Divergente kaartvlakken/stippen krijgen een SVG-patroon (stijgende vs. dalende strepen) bovenop
