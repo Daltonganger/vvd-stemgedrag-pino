@@ -3,6 +3,22 @@
 extraheert de Telling van Pijnacker-Nootdorp en verzamelt VVD + geldige stemmen
 per stembureau. Schrijft /tmp/all_rows.json."""
 import urllib.request, urllib.parse, json, io, zipfile, re, sys, time
+
+def fetch_url(url, timeout=300, tries=4):
+    """Zelfde retry-logica als fetch(), maar met URL-encoding van de bestandsnaam
+    (data.overheid.nl levert '... (Deel 1).zip' alleen als '%28Deel%201%29.zip')."""
+    path = url.split("/")
+    enc = "/".join(path[:-1]) + "/" + urllib.parse.quote(path[-1], safe="")
+    last = None
+    for candidate in (enc, url):
+        for i in range(tries):
+            try:
+                return urllib.request.urlopen(urllib.request.Request(candidate, headers=UA), timeout=timeout).read()
+            except Exception as e:
+                last = e
+                print(f"   retry {i+1}/{tries} ({e})", file=sys.stderr)
+                time.sleep(2 * (i + 1))
+    raise last
 import xml.etree.ElementTree as ET
 
 UA = {"User-Agent": "Mozilla/5.0 (VVD-PijnackerNootdorp-harvest)"}
@@ -54,6 +70,23 @@ DIRECT_ZIPS = {
     ("EP", 2019): "https://data.overheid.nl/sites/default/files/dataset/2648b2ac-c254-4e63-9fe3-a3868acd919c/resources/EMLbestandenEP2019.zip",
     ("EP", 2014): "https://data.overheid.nl/sites/default/files/dataset/58f9ad84-ee16-467e-ac89-4ca0747f5747/resources/EML_bestanden_EP2014.zip",
     ("EP", 2009): "https://data.overheid.nl/sites/default/files/dataset/199da59f-ffb6-4ef0-9f21-0373cbc0df2e/resources/EML_bestanden_EP2009.zip",
+    # Meerdere zips per verkiezing: de eerste met de Pijnacker-Telling wordt voor de telling
+    # gebruikt; ALLE zips worden gescand op een Kandidatenlijst (zit vaak in een ander deel).
+    ("TK", 2021): [
+        "https://data.overheid.nl/sites/default/files/dataset/39e9bad4-4667-453f-ba6a-4733a956f6f8/resources/EML_bestanden_TK2021_deel_1.zip",
+        "https://data.overheid.nl/sites/default/files/dataset/39e9bad4-4667-453f-ba6a-4733a956f6f8/resources/EML_bestanden_TK2021_deel_2.zip",
+        "https://data.overheid.nl/sites/default/files/dataset/39e9bad4-4667-453f-ba6a-4733a956f6f8/resources/EML_bestanden_TK2021_deel_3.zip",
+    ],
+    ("PS", 2023): [
+        "https://data.overheid.nl/sites/default/files/dataset/be8b7869-4a12-4446-abab-5cd0a436dc4f/resources/EML_bestanden_PS2023_deel_1.zip",
+        "https://data.overheid.nl/sites/default/files/dataset/be8b7869-4a12-4446-abab-5cd0a436dc4f/resources/EML_bestanden_PS2023_deel_2.zip",
+        "https://data.overheid.nl/sites/default/files/dataset/be8b7869-4a12-4446-abab-5cd0a436dc4f/resources/EML_bestanden_PS2023_deel_3.zip",
+    ],
+    ("EP", 2024): [
+        "https://data.overheid.nl/sites/default/files/dataset/050597d1-bee3-46e8-bca0-a4a8d0589a2e/resources/Verkiezingsuitslag%20Europees%20Parlement%202024%20%28Deel%201%29.zip",
+        "https://data.overheid.nl/sites/default/files/dataset/050597d1-bee3-46e8-bca0-a4a8d0589a2e/resources/Verkiezingsuitslag%20Europees%20Parlement%202024%20%28Deel%202%29.zip",
+        "https://data.overheid.nl/sites/default/files/dataset/050597d1-bee3-46e8-bca0-a4a8d0589a2e/resources/Verkiezingsuitslag%20Europees%20Parlement%202024%20%28Deel%203%29.zip",
+    ],
 }
 
 def local(t): return t.rsplit('}', 1)[-1]
@@ -207,11 +240,25 @@ def parse_tk2017_csv(zbytes):
 
 
 def kandidaten_from_zip(zbytes, soort):
-    """VVD-kandidaatnamen (nummer -> 'Naam (woonplaats)') uit de Kandidatenlijsten-EML in dezelfde ZIP."""
+    """VVD-kandidaatnamen (nummer -> 'Naam (woonplaats)') uit de Kandidatenlijsten-EML in dezelfde ZIP.
+    Bij PS/TK zit de lijst van Zuid-Holland (Pijnacker-Nootdorp) in een genestelde map; bij GR/EP
+    volstaat elke Kandidatenlijst met Pijnacker in de naam (EP2024 heeft één landelijke lijst)."""
     zf = zipfile.ZipFile(io.BytesIO(zbytes))
-    target = next((n for n in zf.namelist()
-                   if "kandidatenlijst" in n.lower() and n.lower().endswith(".xml")
-                   and (soort != "GR" or "pijnacker" in n.lower() or "1926" in n.lower())), None)
+    namen = zf.namelist()
+    if soort == "PS":
+        target = next((n for n in namen if "kandidatenlijst" in n.lower() and "zuidholland" in n.lower()
+                       and "leiden" in n.lower() and n.lower().endswith(".xml")), None) \
+            or next((n for n in namen if "kandidatenlijst" in n.lower() and "zuidholland" in n.lower()
+                     and n.lower().endswith(".xml")), None)
+    elif soort == "TK":
+        target = next((n for n in namen if "kandidatenlijst" in n.lower() and "leiden" in n.lower()
+                       and n.lower().endswith(".xml")), None) \
+            or next((n for n in namen if "kandidatenlijst" in n.lower() and n.lower().endswith(".xml")), None)
+    elif soort == "EP":
+        target = next((n for n in namen if "kandidatenlijst" in n.lower() and n.lower().endswith(".xml")), None)
+    else:  # GR: gemeente-specifieke lijst
+        target = next((n for n in namen if "kandidatenlijst" in n.lower() and n.lower().endswith(".xml")
+                       and ("pijnacker" in n.lower() or "1926" in n.lower())), None)
     if not target:
         return {}
     root = ET.fromstring(zf.read(target))
@@ -242,18 +289,18 @@ kandidaten = {}
 totalen = {}
 for dsid, soort, jaar in DATASETS:
     try:
-        zips = [DIRECT_ZIPS[(soort, jaar)]] if (soort, jaar) in DIRECT_ZIPS else candidate_zips(dsid)
-        zbytes = fetch(zips[0]) if len(zips) == 1 else None
+        zurls = DIRECT_ZIPS[(soort, jaar)] if (soort, jaar) in DIRECT_ZIPS else candidate_zips(dsid)
+        if isinstance(zurls, str):
+            zurls = [zurls]
+        zbytes_list = []          # alle zips bewaren: telling uit de eerste met hit, kandidatenlijst uit álle
         xml = None
-        if zbytes is None:
-            for zurl in zips:
-                print(f".. {soort}{jaar}: probeer {zurl.split('/')[-1][:50]}", file=sys.stderr)
-                zbytes = fetch(zurl)
-                xml = telling_xml_from_zip(zbytes)
-                if xml:
-                    break
-        else:
-            xml = telling_xml_from_zip(zbytes)
+        for zurl in zurls:
+            print(f".. {soort}{jaar}: probeer {zurl.split('/')[-1][:50]}", file=sys.stderr)
+            zb = fetch_url(zurl)
+            zbytes_list.append(zb)
+            if xml is None:
+                xml = telling_xml_from_zip(zb)
+        zbytes = zbytes_list[0]
         if xml is None and (soort, jaar) == ("TK", 2017):
             rows, lijst = parse_tk2017_csv(zbytes)
             tv = sum(r["vvd"] for r in rows); tg = sum(r["geldig"] for r in rows)
@@ -265,9 +312,18 @@ for dsid, soort, jaar in DATASETS:
             print(f"!! geen Pijnacker Telling in {dsid}", file=sys.stderr); continue
         rows = parse_telling(xml, soort, jaar)
         tv = sum(r["vvd"] for r in rows); tg = sum(r["geldig"] for r in rows)
-        kand = kandidaten_from_zip(zbytes, soort)
+        # kandidatenlijst kan in een ANDER zip-deel zitten dan de telling -> scan alle zips
+        kand = {}
+        for zb in zbytes_list:
+            kand = kandidaten_from_zip(zb, soort)
+            if kand:
+                break
         kandidaten[soort + str(jaar)] = kand
-        ref = totaal_from_zip(zbytes)
+        ref = None
+        for zb in zbytes_list:
+            ref = totaal_from_zip(zb)
+            if ref:
+                break
         if ref:
             totalen[soort + str(jaar)] = ref
         print(f"   -> {len(rows)} stembureaus, VVD={tv}, geldig={tg}, {100*tv/tg:.1f}% · {len(kand)} VVD-kandidaten", file=sys.stderr)

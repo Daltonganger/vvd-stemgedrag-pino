@@ -318,24 +318,24 @@ const STEMBUREAUS = [
   "id": "40",
   "naam": "Basisschool De Schatkaart",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.02115,
+  "lon": 4.44002,
   "mobiel": false
  },
  {
   "id": "41",
   "naam": "Basisschool Sint Jozef",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.03517,
+  "lon": 4.41183,
   "mobiel": false
  },
  {
   "id": "42",
   "naam": "CulturA",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.04757,
+  "lon": 4.38925,
   "mobiel": false
  },
  {
@@ -350,8 +350,8 @@ const STEMBUREAUS = [
   "id": "44",
   "naam": "Kantine Meersma BV",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.01965,
+  "lon": 4.43916,
   "mobiel": false
  },
  {
@@ -366,8 +366,8 @@ const STEMBUREAUS = [
   "id": "46",
   "naam": "Gemeentelijk servicepunt",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.04757,
+  "lon": 4.38925,
   "mobiel": false
  },
  {
@@ -398,8 +398,8 @@ const STEMBUREAUS = [
   "id": "50",
   "naam": "OBS de Tweemaster",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.02115,
+  "lon": 4.44002,
   "mobiel": false
  },
  {
@@ -414,24 +414,24 @@ const STEMBUREAUS = [
   "id": "52",
   "naam": "Sportzaal",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.04757,
+  "lon": 4.38925,
   "mobiel": false
  },
  {
   "id": "53",
   "naam": "Willem-Alexanderschool",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.01316,
+  "lon": 4.43935,
   "mobiel": false
  },
  {
   "id": "54",
   "naam": "Wooncentrum",
   "postcode": "",
-  "lat": null,
-  "lon": null,
+  "lat": 52.04757,
+  "lon": 4.38925,
   "mobiel": false
  },
  {

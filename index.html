@@ -6,7 +6,9 @@
 <title>VVD Pijnacker-Nootdorp · Stemgedrag per stembureau</title>
 <link rel="icon" href="assets/vvd-logo.png">
 <link rel="stylesheet" href="vendor/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
-<link rel="stylesheet" href="style.css?v=20260706">
+<!-- #21: cache-buster automatisch uit META.bijgewerkt (data/meta.js) — geen handmatige ?v= meer nodig -->
+<script src="data/meta.js"></script>
+<script>document.write('<link rel="stylesheet" href="style.css?v=' + (window.META ? META.bijgewerkt : Date.now()) + '">');</script>
 </head>
 <body>
 
@@ -135,7 +137,7 @@
 <script src="data/uitslagen.js"></script>
 <script src="data/kandidaten.js"></script>
 <script src="data/partijen_lr.js"></script>
-<script src="data/meta.js"></script>
+<!-- meta.js is al in <head> geladen voor de cache-buster (#21) -->
 <script>
 /* #15 — kies de basiskaart vóór het laden: licht bestand (~4 MB) op mobiel / databesparing /
    trage verbinding, vol bestand (~8 MB) op de rest. Handmatige override in localStorage. */
@@ -150,7 +152,7 @@
 })();
 </script>
 <script src="data/gebieden.js"></script>
-<!-- ?v bumpen bij redeploy zodat browsers verse app.js/style.css laden (GitHub Pages cachet) -->
-<script src="app.js?v=20260706"></script>
+<!-- #21: app.js met automatische cache-buster uit META.bijgewerkt -->
+<script>document.write('<script src="app.js?v=' + (window.META ? META.bijgewerkt : Date.now()) + '"><\/script>');</script>
 </body>
 </html>
