@@ -55,6 +55,28 @@ Per open punt: **impact**, **werk** (S/M/L) en concreet wat te doen.
 
 ## Open
 
+### #19. Oudere verkiezingen + stemverdeling in popup — GEDAAN
+**17 verkiezingen** nu in de data: EP2009/2014/2019/2024, TK2010/2012/2017/2021/2023/2025,
+PS2015/2019/2023, GR2014/2018/2022/2026. `harvest.py` heeft directe ZIP-URLs
+(`DIRECT_ZIPS`) voor de oudere jaren; **TK2017** had géén per-stembureau EML voor
+Pijnacker-Nootdorp — die parse je uit de CSV in `Gemeente_overige_uitslagen/`
+(`parse_tk2017_csv`, lijstnr→partij via Kandidatenlijsten kieskring Leiden; de
+'Totaal'-regel wordt overgeslagen; geldige stemmen = som partij-kolommen). Gemerged
+via `merge_election.py`, `build_gebieden.py` opnieuw gedraaid (17 verkiezings-gebieden).
+**Popup**: bij openen van een stembureau direct top-8 partijen van de gekozen
+verkiezing (VVD gemarkeerd) + VVD-% per verkiezing + positie. Standaard zie je alleen
+VVD; de rest zit in de popup/het zijpaneel.
+
+### #18. Politieke positie per stembureau (links↔rechts) — GEDAAN
+**CHES 2024** `lrgen` (0=links, 10=rechts) per Nederlandse partij → `scripts/fetch_partijen_lr.py`
+→ `data/partijen_lr.js` (26 namen incl. fusies; JA21 via ParlGov 8.8). In app.js:
+gewogen positie per stembureau per verkiezing (`positie()`), gemeente-gemiddelde per
+verkiezing, nieuwe kaartmaat "Politieke positie" (paars↔grijs↔oranje rond 5), sorteerbare
+tabelkolom, popup-regel met dekking, samenvattingsrij, lijn in de grafiek (tweede as 0–10)
+en zijpaneel met per-niveau- en alles-samen-overzicht. Lokale partijen zonder score
+tellen niet mee; dekking (% stemmen mét score) wordt overal getoond
+(bv. GR2026 ≈ 65%, TK/EP ≈ 98%).
+
 ### #8. Kleurenblind-veilig + toegankelijkheid
 **Impact: middel · Werk: S**
 Rood/groen (winst/verlies) is lastig voor ~8% van de mannen. Voeg patronen/cijferlabels toe, maak

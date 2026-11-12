@@ -33,6 +33,15 @@ het bestuur.
 - **Grafiek** — VVD-% van het gekozen stembureau over alle verkiezingen.
 - **Partijen** — bij een gekozen stembureau de volledige ranglijst van partijen (VVD
   gemarkeerd): zie meteen *waar de VVD aan wie verliest*.
+- **Politieke positie (links↔rechts)** — per stembureau een gewogen score 0–10 uit de
+  CHES 2024 partij-scores (`data/partijen_lr.js`): als nieuwe kaartmaat, sorteerbare
+  kolom in de tabel, regel in de popup/samenvatting, lijn in de grafiek én een
+  overzicht per verkiezing/niveau/alles in het zijpaneel. Lokale partijen zonder
+  score tellen niet mee; de **dekking** (% stemmen mét score) wordt altijd getoond.
+- **Stembureau openen = stemverdeling** — in de popup van een stembureau zie je direct de
+  top-8 partijen van de gekozen verkiezing (VVD vet/blauw gemarkeerd), óók de VVD-% over
+  alle verkiezingen en de links↔rechts-positie. Klik door voor grafiek + alle partijen
+  in het zijpaneel.
 - **Download CSV** — alle cijfers (aantallen, %, uitgebrachte stemmen, grootste partij).
 
 ## Databron — dit zijn ECHTE, officiële cijfers
@@ -41,9 +50,10 @@ De cijfers komen uit de **officiële EML-uitslagbestanden van de Kiesraad** op
 
 | Niveau | Verkiezingen |
 |--------|--------------|
-| Landelijk (Tweede Kamer) | 2021, 2023, 2025 |
-| Provincie (Provinciale Staten) | 2023 |
-| Gemeente (Gemeenteraad) | 2018, 2022, 2026 |
+| Europees (EP) | 2009, 2014, 2019, 2024 |
+| Landelijk (Tweede Kamer) | 2010, 2012, 2017, 2021, 2023, 2025 |
+| Provincie (Provinciale Staten) | 2015, 2019, 2023 |
+| Gemeente (Gemeenteraad) | 2014, 2018, 2022, 2026 |
 
 Gecontroleerd: de som per verkiezing klopt met de gepubliceerde gemeentetotalen
 (bv. Gemeenteraad 2026 = 3.131 VVD-stemmen, Tweede Kamer 2025 = 6.264, Prov. Staten 2023 = 4.244).
@@ -90,10 +100,12 @@ data/uitslagen.js     VVD + geldige stemmen per stembureau per verkiezing — ge
 data/basemap.js       offline vector-basiskaart (water/wegen/kernen) uit OSM — gegenereerd
 data/gebieden.js      stembureau-gebieden (Voronoi op de gemeentegrens) — gegenereerd
 data/kandidaten.js    VVD-kandidaatnamen per verkiezing — gegenereerd
+data/partijen_lr.js   links/rechts-score per partij (CHES 2024) — gegenereerd
 data/meta.js          laatst-bijgewerkt-datum + integriteitsstatus — gegenereerd
 scripts/update_all.py MASTER: werkt alles in één keer bij (alle stappen hieronder)
 scripts/harvest.py    download + parse officiële Kiesraad-EML (+ kandidaten + controle-totalen)
 scripts/build_data.py clusteren (op postcode) + geocoderen + integriteitscheck -> data/*.js
+scripts/fetch_partijen_lr.py  CHES 2024 partij-posities (lrgen) -> data/partijen_lr.js
 scripts/fetch_offline.py  vendor Leaflet + Chart.js naar vendor/
 scripts/fetch_basemap.py  genereer data/basemap.js uit OpenStreetMap (Overpass)
 scripts/build_gebieden.py genereer data/gebieden.js (Thiessen/Voronoi, grens via PDOK)

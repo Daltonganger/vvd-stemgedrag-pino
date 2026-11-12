@@ -109,6 +109,36 @@ const meerwaarde = (sb) => {
   return a == null || b == null ? null : a - b;
 };
 
+// ---- #18: links/rechts-positie per stembureau (CHES 2024 lrgen, 0=links t/m 10=rechts) ----
+const LR = typeof PARTIJEN_LR !== "undefined" ? PARTIJEN_LR : {};
+const lrVan = (naam) => LR[naam.toUpperCase().replace(/\s+/g, " ").trim()];
+// gewogen gemiddelde lrgen over partijen met bekende score; dekking = aandeel stemmen met score
+function positie(sb, e) {
+  const u = getU(sb, e);
+  if (!u || !u.geldig) return null;
+  let som = 0, gedekt = 0;
+  for (const [naam, v] of u.partijen || []) {
+    const lr = lrVan(naam);
+    if (lr != null) { som += v * lr; gedekt += v; }
+  }
+  if (!gedekt) return null;
+  return { score: som / gedekt, dekking: (100 * gedekt) / u.geldig };
+}
+// gemeente-gemiddelde positie per verkiezing (gewogen over geldige stemmen met score)
+const gemPositie = {};
+for (const e of ELECTIONS) {
+  let som = 0, gedekt = 0;
+  for (const s of STEMBUREAUS) {
+    const u = getU(s.id, e.id);
+    if (!u || !u.geldig) continue;
+    for (const [naam, v] of u.partijen || []) {
+      const lr = lrVan(naam);
+      if (lr != null) { som += v * lr; gedekt += v; }
+    }
+  }
+  gemPositie[e.id] = gedekt ? { score: som / gedekt, dekking: null } : null;
+}
+
 /* ---------------- state ---------------- */
 let huidige = (latestOf("GR") || ELECTIONS[ELECTIONS.length - 1]).id;
 let metric = "perc";
@@ -136,9 +166,12 @@ function metricValue(sb) {
   if (metric === "vspartij") { const u = getU(sb, huidige); if (!u || !u.geldig || !vergelijkPartij) return null; return (100 * (u.vvd - partyVotes(u, vergelijkPartij))) / u.geldig; }
   if (metric === "opkomst") return opkomstPct(sb, huidige);
   if (metric === "kandidaat") return kiesKandidaat ? kandidaatAandeel(sb, huidige, kiesKandidaat) : null;
+  if (metric === "positie") { const p = positie(sb, huidige); return p ? p.score : null; }
   return null;
 }
 const DIVERGEND = new Set(["afwijking", "meerwaarde", "winst", "vsgrootste", "vspartij"]);
+// #18: de positie-metric is sequentieel rond het centrum 5 (links↔rechts), niet divergent t.o.v. 0
+const POSITIE_METRIC = "positie";
 const isDiverging = () => DIVERGEND.has(metric);
 function metricLabel() {
   if (metric === "vspartij") return "VVD t.o.v. " + (vergelijkPartij || "—");
@@ -149,6 +182,11 @@ function metricLabel() {
 function colorFor(val, lo, hi, maxAbs) {
   if (val == null) return "#bbbbbb";
   if (isDiverging()) return div(maxAbs ? val / maxAbs : 0);
+  if (metric === POSITIE_METRIC) {
+    // links (0, paars/links) -> midden (5, grijs) -> rechts (10, VVD-oranje); symmetrisch rond 5
+    const t = Math.max(0, Math.min(1, (val - 0) / 10));
+    return t < 0.5 ? mix("#6a51a3", "#eeeeee", t * 2) : mix("#eeeeee", "#FF6400", (t - 0.5) * 2);
+  }
   return seq(hi > lo ? (val - lo) / (hi - lo) : 0.5);
 }
 
@@ -194,9 +232,21 @@ function popupHtml(s) {
     return `<div class="prow"><span class="pl">${e.label}</span>` +
       `<span class="pp">${pct(u).toFixed(1)}%</span><span class="pv">${u.vvd}</span></div>`;
   }).join("");
+  const p = positie(s.id, huidige);
+  const posRij = p ? `<div class="prow"><span class="pl">Positie (links↔rechts)</span>` +
+    `<span class="pp">${p.score.toFixed(1)}</span><span class="pv" title="dekking ${p.dekking.toFixed(0)}% van stemmen heeft een score">${p.dekking.toFixed(0)}%</span></div>` : "";
+  // #19: bij openen van een stembureau direct de stemverdeling per partij (top 8, VVD gemarkeerd)
+  const u = getU(s.id, huidige);
+  const e = ELECTIONS.find((x) => x.id === huidige);
+  const partijRijen = u && u.partijen && u.partijen.length
+    ? `<div class="pkop" style="margin-top:.45rem"><span class="pl">Partijen — ${e.label}</span><span class="pp">%</span><span class="pv">aant.</span></div>` +
+      u.partijen.slice(0, 8).map(([naam, v]) =>
+        `<div class="prow${isVVD(naam) ? " vvdrij" : ""}"><span class="pl">${naam}</span>` +
+        `<span class="pp">${(100 * v / u.geldig).toFixed(1)}%</span><span class="pv">${v}</span></div>`).join("")
+    : "";
   return `<b class="ptitle">${s.naam}</b>` +
     `<div class="pkop"><span class="pl">Verkiezing</span><span class="pp">VVD&nbsp;%</span><span class="pv">aant.</span></div>` +
-    rows + `<div class="popuphint">Klik voor alle partijen →</div>`;
+    rows + posRij + partijRijen + `<div class="popuphint">Klik voor grafiek &amp; alle partijen in het zijpaneel →</div>`;
 }
 
 // doel-id van een gebied: in kernen-weergave de kern, anders het stembureau zelf
@@ -255,7 +305,10 @@ function tekenLegend(lo, hi, maxAbs) {
   const el = document.getElementById("legend");
   const titel = metricLabel();
   let grad, links, rechts;
-  if (isDiverging()) {
+  if (metric === POSITIE_METRIC) {
+    grad = `linear-gradient(90deg, ${colorFor(0)}, ${colorFor(5)}, ${colorFor(10)})`;
+    links = "0 links"; rechts = "10 rechts";
+  } else if (isDiverging()) {
     grad = `linear-gradient(90deg, ${div(-1)}, ${div(0)}, ${div(1)})`;
     links = "−" + maxAbs.toFixed(1) + " pp"; rechts = "+" + maxAbs.toFixed(1) + " pp";
   } else {
@@ -279,11 +332,14 @@ function tekenSamenvatting() {
     ? `${grootste[0]} · ${(100 * grootste[1] / g.geldig).toFixed(1)}%${isVVD(grootste[0]) ? " (VVD!)" : ""}`
     : "—";
   const opkomstTxt = g.opkomst != null ? g.opkomst.toFixed(1) + "%" : "onbekend";
+  const gp = gemPositie[huidige];
+  const positieTxt = gp ? `${gp.score.toFixed(1)} / 10` : "—";
   document.getElementById("summary-body").innerHTML = `
     <div class="big">${g.pct.toFixed(1)}%</div>
     <div style="font-size:.8rem;color:var(--grijs);margin:.1rem 0 .5rem">VVD-gemiddelde ${e.label}${vvdRang ? ` · ${vvdRang}e partij` : ""} · ${g.vvd.toLocaleString("nl")} van ${g.geldig.toLocaleString("nl")} geldige stemmen · ${g.n} stembureaus</div>
     <div class="row"><span>Opkomst (gemeente)</span><span>${opkomstTxt}</span></div>
     <div class="row"><span>Grootste partij</span><span>${grootsteTxt}</span></div>
+    <div class="row"><span>Gem. positie gemeente (links↔rechts)</span><span>${positieTxt}</span></div>
     <div class="row"><span>VVD hoogste</span><span>${hoog.s.naam} · ${hoog.p.toFixed(1)}%</span></div>
     <div class="row"><span>VVD laagste</span><span>${laag.s.naam} · ${laag.p.toFixed(1)}%</span></div>`;
 }
@@ -304,6 +360,39 @@ function tekenKernOverzicht() {
       <div class="ksub">grootste: ${win ? win[0] : "—"} · opkomst ${r.u.kiesg ? (100 * r.u.uitgebracht / r.u.kiesg).toFixed(0) + "%" : "?"} · ${r.u.geldig.toLocaleString("nl")} geldige stemmen</div>`;
   }).join("") || "<p class='hint'>geen kerngegevens</p>";
   document.querySelectorAll("#kern-body .kernrow").forEach((r) => r.addEventListener("click", () => selecteer(r.dataset.sb)));
+}
+
+/* ---------------- #18: politieke positie per verkiezing / niveau / alles ---------------- */
+function tekenPositieOverzicht() {
+  const body = document.getElementById("positie-body");
+  const blok = (titel, ids) => {
+    const rows = ids.map((eid) => ({ e: ELECTIONS.find((x) => x.id === eid), g: gemPositie[eid] }))
+      .filter((r) => r.g);
+    if (!rows.length) return "";
+    return `<div class="posblok"><div class="poskop">${titel}</div>` + rows.map((r) => {
+      const t = Math.max(0, Math.min(1, r.g.score / 10));
+      return `<div class="posrow"><span class="pl">${r.e.label}</span>` +
+        `<span class="posmeter"><i style="left:${(t * 100).toFixed(1)}%"></i></span>` +
+        `<b>${r.g.score.toFixed(1)}</b></div>`;
+    }).join("") + `</div>`;
+  };
+  const niveau = (soort) => ELECTIONS.filter((e) => e.soort === soort).map((e) => e.id);
+  const alles = ELECTIONS.map((e) => e.id);
+  // alles-samen: gewogen over alle verkiezingen heen
+  let som = 0, gedekt = 0;
+  for (const s of STEMBUREAUS) for (const e of ELECTIONS) {
+    const u = getU(s.id, e.id);
+    if (!u || !u.geldig) continue;
+    for (const [naam, v] of u.partijen || []) { const lr = lrVan(naam); if (lr != null) { som += v * lr; gedekt += v; } }
+  }
+  const allesScore = gedekt ? som / gedekt : null;
+  const allesBlok = allesScore != null
+    ? `<div class="posblok"><div class="poskop">Alle ${ELECTIONS.length} verkiezingen samen</div>` +
+      `<div class="posrow"><span class="pl">Totaal</span><span class="posmeter"><i style="left:${(Math.max(0, Math.min(1, allesScore / 10)) * 100).toFixed(1)}%"></i></span><b>${allesScore.toFixed(1)}</b></div></div>`
+    : "";
+  body.innerHTML = blok("Europees", niveau("EP")) + blok("Landelijk", niveau("TK")) +
+    blok("Provinciaal", niveau("PS")) + blok("Gemeentelijk", niveau("GR")) + allesBlok +
+    `<div class="posas"><span>0 links</span><span>5</span><span>10 rechts</span></div>`;
 }
 
 /* ---------------- #5: grootste stijgers & dalers (t.o.v. vorige keer, zelfde niveau) ---------------- */
@@ -334,6 +423,7 @@ const zichtbareElections = () => ELECTIONS.filter((e) => zichtbaar.has(e.soort))
 function sortWaarde(s, key) {
   if (key === "naam") return s.naam.toLowerCase();
   if (key === "meerwaarde") return meerwaarde(s.id);
+  if (key === "positie") { const p = positie(s.id, huidige); return p ? p.score : null; }
   return pctOf(s.id, key);
 }
 
@@ -345,7 +435,7 @@ function tekenTabel() {
     .map((n) => `<th class="group" scope="colgroup" colspan="${els.filter((e) => e.soort === n).length}">${NIVEAU[n]}</th>`).join("");
   const arrow = (k) => sort.key === k ? `<span class="arrow">${sort.dir < 0 ? "▼" : "▲"}</span>` : "";
   let head = `<thead>
-    <tr><th rowspan="2" scope="col" tabindex="0" title="Sorteer op naam">Stembureau ${arrow("naam")}</th>${groupCols}<th class="group" rowspan="2" scope="col" tabindex="0" title="Sorteer op lokale meerwaarde">Lokale<br>meerwaarde ${arrow("meerwaarde")}</th></tr>
+    <tr><th rowspan="2" scope="col" tabindex="0" title="Sorteer op naam">Stembureau ${arrow("naam")}</th>${groupCols}<th class="group" rowspan="2" scope="col" tabindex="0" title="Sorteer op lokale meerwaarde">Lokale<br>meerwaarde ${arrow("meerwaarde")}</th><th class="group" rowspan="2" scope="col" tabindex="0" title="Politieke positie van dit stembureau (links 0 ↔ rechts 10) bij de gekozen verkiezing — sorteer">Positie<br>(L↔R) ${arrow("positie")}</th></tr>
     <tr>${els.map((e) => `<th data-k="${e.id}" scope="col" tabindex="0" title="${e.label} — sorteer">'${String(e.jaar).slice(2)} ${arrow(e.id)}</th>`).join("")}</tr></thead>`;
 
   const rijen = [...STEMBUREAUS].sort((a, b) => {
@@ -364,14 +454,17 @@ function tekenTabel() {
     }).join("");
     const mw = meerwaarde(s.id);
     const mwCell = mw == null ? `<td class="leeg" title="Lokale meerwaarde niet te berekenen: geen gemeente- én landelijke uitslag voor deze locatie.">–</td>` : `<td class="pct" style="background:${div(mw / 12)}">${mw > 0 ? "+" : ""}${mw.toFixed(1)}</td>`;
+    const p = positie(s.id, huidige);
+    const posCell = p == null ? `<td class="leeg" title="Geen positie te berekenen: geen uitslag of geen enkele partij met bekende links/rechts-score.">–</td>`
+      : `<td class="pct" style="background:${colorFor(p.score, 0, 10, 0)}" title="Gewogen links/rechts-positie (CHES 2024) · dekking ${p.dekking.toFixed(0)}% van de stemmen">${p.score.toFixed(1)}</td>`;
     return `<tr data-sb="${s.id}" tabindex="0" aria-selected="${s.id === geselecteerd}" class="${s.mobiel ? "mobiel" : ""} ${s.id === geselecteerd ? "sel" : ""}">
-      <th scope="row">${s.naam}</th>${cells}${mwCell}</tr>`;
+      <th scope="row">${s.naam}</th>${cells}${mwCell}${posCell}</tr>`;
   }).join("");
 
   t.innerHTML = head + "<tbody>" + body + "</tbody>";
   t.setAttribute("aria-label", "VVD per stembureau — percentages per verkiezing; Enter selecteert een rij, klik een kolomkop om te sorteren.");
   const sorteer = (th) => {
-    const k = th.dataset.k || (th.textContent.startsWith("Stembureau") ? "naam" : th.textContent.startsWith("Lokale") ? "meerwaarde" : null);
+    const k = th.dataset.k || (th.textContent.startsWith("Stembureau") ? "naam" : th.textContent.startsWith("Lokale") ? "meerwaarde" : th.textContent.startsWith("Positie") ? "positie" : null);
     if (!k) return;
     sort = { key: k, dir: sort.key === k ? -sort.dir : -1 };
     tekenTabel();
@@ -397,17 +490,27 @@ function tekenGrafiek() {
   const s = sbById.get(geselecteerd);
   titelEl.textContent = s.naam;
   const data = ELECTIONS.map((e) => pctOf(s.id, e.id));
+  const posData = ELECTIONS.map((e) => { const p = positie(s.id, e.id); return p ? p.score : null; });
   const cfg = {
     type: "bar",
     data: {
       labels: ELECTIONS.map((e) => e.label.replace("Europees", "EP").replace("Landelijk", "TK").replace("Provincie", "PS").replace("Gemeente", "GR")),
-      datasets: [{ label: "VVD %", data, backgroundColor: ELECTIONS.map((e) => KLEUR_NIVEAU[e.soort]) }],
+      datasets: [
+        { label: "VVD %", data, backgroundColor: ELECTIONS.map((e) => KLEUR_NIVEAU[e.soort]), yAxisID: "y" },
+        { label: "Positie (L↔R)", data: posData, type: "line", borderColor: "#6a51a3", backgroundColor: "#6a51a3",
+          borderWidth: 2, pointRadius: 3, yAxisID: "y2", spanGaps: true },
+      ],
     },
     options: {
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => {
-        const e = ELECTIONS[c.dataIndex], u = getU(s.id, e.id);
-        return u ? `${e.label}: ${pct(u).toFixed(1)}% (${u.vvd}/${u.geldig})` : e.label + ": —"; } } } },
-      scales: { y: { ticks: { callback: (v) => v + "%" }, beginAtZero: true } },
+      plugins: { legend: { display: true, position: "top", labels: { boxWidth: 12, font: { size: 10 } } },
+        tooltip: { callbacks: { label: (c) => {
+          const e = ELECTIONS[c.dataIndex], u = getU(s.id, e.id);
+          if (c.datasetIndex === 1) { const p = positie(s.id, e.id); return p ? `${e.label}: positie ${p.score.toFixed(1)}/10 (dekking ${p.dekking.toFixed(0)}%)` : e.label + ": —"; }
+          return u ? `${e.label}: ${pct(u).toFixed(1)}% (${u.vvd}/${u.geldig})` : e.label + ": —"; } } } },
+      scales: {
+        y: { ticks: { callback: (v) => v + "%" }, beginAtZero: true, title: { display: true, text: "VVD %" } },
+        y2: { position: "right", min: 0, max: 10, grid: { drawOnChartArea: false }, title: { display: true, text: "links ↔ rechts" } },
+      },
     },
   };
   if (chart) { chart.data = cfg.data; chart.update(); } else chart = new Chart(ctx, cfg);
@@ -516,12 +619,12 @@ const toonKeuzes = () => {
   document.getElementById("lbl-kandidaat").hidden = metric !== "kandidaat";
 };
 
-function herteken() { vulPartijKeuze(); vulKandidaatKeuze(); tekenKaart(); tekenSamenvatting(); tekenKernOverzicht(); tekenMovers(); tekenTabel(); tekenPartijen(); tekenKandidaten(); }
+function herteken() { vulPartijKeuze(); vulKandidaatKeuze(); tekenKaart(); tekenSamenvatting(); tekenKernOverzicht(); tekenPositieOverzicht(); tekenMovers(); tekenTabel(); tekenPartijen(); tekenKandidaten(); tekenGrafiek(); }
 
 (function init() {
   const sv = document.getElementById("sel-verkiezing");
   sv.innerHTML = ELECTIONS.map((e) => `<option value="${e.id}" ${e.id === huidige ? "selected" : ""}>${e.label}</option>`).join("");
-  sv.addEventListener("change", () => { huidige = sv.value; if (metric === "perc" || metric === "afwijking" || metric === "winst") sort.key = sort.key in NIVEAU ? sort.key : huidige; herteken(); });
+  sv.addEventListener("change", () => { huidige = sv.value; if (metric === "perc" || metric === "afwijking" || metric === "winst") sort.key = sort.key in NIVEAU ? sort.key : huidige; herteken(); tekenGrafiek(); });
   document.getElementById("sel-metric").addEventListener("change", (e) => { metric = e.target.value; toonKeuzes(); tekenKaart(); });
   document.getElementById("sel-partij").addEventListener("change", (e) => { vergelijkPartij = e.target.value; tekenKaart(); });
   document.getElementById("sel-kandidaat").addEventListener("change", (e) => { kiesKandidaat = e.target.value; tekenKaart(); tekenKandidaten(); });

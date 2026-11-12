@@ -11,6 +11,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STAPPEN = [
     ("Uitslagen ophalen (officiële Kiesraad-EML)",                 "harvest.py"),
     ("Stembureaus + uitslagen + kandidaten bouwen (+ check)",      "build_data.py"),
+    ("Partij-posities links/rechts ophalen (CHES 2024)",           "fetch_partijen_lr.py"),
     ("Stembureau-gebieden (Voronoi op de gemeentegrens)",          "build_gebieden.py"),
     ("Vector-basiskaart ophalen (OpenStreetMap)",                  "fetch_basemap.py"),
     ("Lichte basiskaart bouwen (mobiel/trage verbinding)",         "build_basemap_lite.py"),

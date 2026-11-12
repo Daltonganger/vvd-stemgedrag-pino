@@ -361,5 +361,109 @@ const STEMBUREAUS = [
   "lat": null,
   "lon": null,
   "mobiel": false
+ },
+ {
+  "id": "46",
+  "naam": "Gemeentelijk servicepunt",
+  "postcode": "",
+  "lat": null,
+  "lon": null,
+  "mobiel": false
+ },
+ {
+  "id": "47",
+  "naam": "Het Oude Laarsje",
+  "postcode": "",
+  "lat": 52.03975,
+  "lon": 4.38653,
+  "mobiel": false
+ },
+ {
+  "id": "48",
+  "naam": "Hoofdgebouw Stichting Ipse",
+  "postcode": "",
+  "lat": null,
+  "lon": null,
+  "mobiel": false
+ },
+ {
+  "id": "49",
+  "naam": "Infocentrum Tolhek",
+  "postcode": "",
+  "lat": null,
+  "lon": null,
+  "mobiel": false
+ },
+ {
+  "id": "50",
+  "naam": "OBS de Tweemaster",
+  "postcode": "",
+  "lat": null,
+  "lon": null,
+  "mobiel": false
+ },
+ {
+  "id": "51",
+  "naam": "Soc cult centrum",
+  "postcode": "",
+  "lat": null,
+  "lon": null,
+  "mobiel": false
+ },
+ {
+  "id": "52",
+  "naam": "Sportzaal",
+  "postcode": "",
+  "lat": null,
+  "lon": null,
+  "mobiel": false
+ },
+ {
+  "id": "53",
+  "naam": "Willem-Alexanderschool",
+  "postcode": "",
+  "lat": null,
+  "lon": null,
+  "mobiel": false
+ },
+ {
+  "id": "54",
+  "naam": "Wooncentrum",
+  "postcode": "",
+  "lat": null,
+  "lon": null,
+  "mobiel": false
+ },
+ {
+  "id": "55",
+  "naam": "t Hofland",
+  "postcode": "",
+  "lat": null,
+  "lon": null,
+  "mobiel": false
+ },
+ {
+  "id": "56",
+  "naam": "t Prinsesje",
+  "postcode": "",
+  "lat": null,
+  "lon": null,
+  "mobiel": false
+ },
+ {
+  "id": "57",
+  "naam": "SWOP St. Welzijn & Ondersteuning Pijnacker-Nootdorp",
+  "postcode": "2641DE",
+  "lat": 52.0214,
+  "lon": 4.43433,
+  "mobiel": false
+ },
+ {
+  "id": "58",
+  "naam": "Sportcomplex de Viergang",
+  "postcode": "",
+  "lat": null,
+  "lon": null,
+  "mobiel": false
  }
 ];

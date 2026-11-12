@@ -32,6 +32,7 @@
         <option value="vspartij">VVD t.o.v. gekozen partij</option>
         <option value="opkomst">Opkomst per stembureau (indicatief — drukte)</option>
         <option value="kandidaat">Aandeel VVD-kandidaat (waar is kandidaat sterk)</option>
+        <option value="positie">Politieke positie stembureau (links↔rechts, CHES 2024)</option>
       </select>
     </label>
     <label id="lbl-partij" hidden>Vergelijk partij
@@ -71,6 +72,11 @@
     <div class="card" id="kern-card">
       <h2 id="kern-title">Per kern</h2>
       <div id="kern-body"></div>
+    </div>
+    <div class="card" id="positie-card">
+      <h2>Politieke positie — gemeente (links ↔ rechts)</h2>
+      <div id="positie-body"></div>
+      <p class="hint">Gewogen gemiddelde van CHES 2024 links/rechts-scores (0=links, 10=rechts) over alle partijen met een score. Lokale partijen zonder score tellen niet mee.</p>
     </div>
     <div class="card" id="movers-card" hidden>
       <h2 id="movers-title">Stijgers &amp; dalers</h2>
@@ -125,6 +131,7 @@
 <script src="data/stembureaus.js"></script>
 <script src="data/uitslagen.js"></script>
 <script src="data/kandidaten.js"></script>
+<script src="data/partijen_lr.js"></script>
 <script src="data/meta.js"></script>
 <script>
 /* #15 — kies de basiskaart vóór het laden: licht bestand (~4 MB) op mobiel / databesparing /
