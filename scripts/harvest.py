@@ -129,13 +129,16 @@ def totaal_from_zip(zbytes):
     zf = zipfile.ZipFile(io.BytesIO(zbytes))
     namen = zf.namelist()
     target = next((n for n in namen if "totaaltelling" in n.lower()
-                   and ("pijnacker" in n.lower() or "1926" in n.lower()) and n.endswith(".xml")), None)
+                   and ("pijnacker" in n.lower() or "nootdorp" in n.lower() or "1926" in n.lower())
+                   and n.endswith(".xml")), None)
     if not target:  # TK2017-stijl: 'Totaaltelling_TK2017_gemeente_Pijnacker-Nootdorp.eml.xml'
         target = next((n for n in namen
                        if re.search(r"totaaltelling_\w+_gemeente_pijnacker.?nootdorp\.eml\.xml$", n.lower())), None)
     if not target:
         return None
     root = ET.fromstring(zf.read(target))
+    if root is None:
+        return None
     tv = next((r for r in root.iter() if local(r.tag) == "TotalVotes"), None)
     if tv is None:
         return None
@@ -152,6 +155,40 @@ def totaal_from_zip(zbytes):
         if rn is not None and (rn.text or "").upper().startswith("VVD"):
             vvd = vv
     return {"vvd": vvd, "geldig": geldig}
+
+def totaal_from_telling(zbytes):
+    """#22 — Referentie-totaal afgeleid UIT de gemeente-telling zelf (som over alle
+    ReportingUnitVotes), voor zips zonder aparte Totaaltelling. Geeft None als er geen
+    Pijnacker-telling in zit."""
+    zf = zipfile.ZipFile(io.BytesIO(zbytes))
+    n = next((n for n in zf.namelist() if "telling" in n.lower() and "totaal" not in n.lower()
+              and ("pijnacker" in n.lower() or "nootdorp" in n.lower() or "1926" in n.lower())
+              and n.endswith(".xml")), None)
+    if not n:
+        return None
+    root = ET.fromstring(zf.read(n))
+    vvd = geldig = 0
+    # #22: som per-stembureau = som over alle ReportingUnitVotes ZONDER geneste RU-kinderen.
+    # De gemeente-telling heeft platte RU's (22 stuks, elk ~1031 Selection-regels: partijen
+    # + kandidaten). Candidate-Selection-regels (zonder AffiliationIdentifier) tellen niet
+    # mee in 'geldig'; alleen partij-regels doen dat.
+    for ru in root.iter():
+        if local(ru.tag) != "ReportingUnitVotes":
+            continue
+        if any(local(a.tag) == "ReportingUnitVotes" for a in ru):
+            continue  # gemeente-totaal-laag (als die al aanwezig is) — tel de bladeren
+        for sel in ru:
+            if local(sel.tag) != "Selection":
+                continue
+            aff = next((x for x in sel if local(x.tag) == "AffiliationIdentifier"), None)
+            vv = next((int(x.text) for x in sel if local(x.tag) == "ValidVotes"), 0)
+            if aff is not None:
+                geldig += vv
+                rn = next((y for y in aff.iter() if local(y.tag) == "RegisteredName"), None)
+                if rn is not None and (rn.text or "").upper().startswith("VVD"):
+                    vvd += vv   # += : er kunnen meerdere VVD-lijst-regels zijn (fusies)
+    return {"vvd": vvd, "geldig": geldig} if geldig else None
+
 
 def parse_telling(xml_bytes, soort, jaar):
     root = ET.fromstring(xml_bytes)
@@ -324,6 +361,12 @@ for dsid, soort, jaar in DATASETS:
             ref = totaal_from_zip(zb)
             if ref:
                 break
+        if not ref:  # #22: geen aparte Totaaltelling -> som uit de gemeente-telling zelf
+            for zb in zbytes_list:
+                ref = totaal_from_telling(zb)
+                if ref:
+                    print(f"   ({soort}{jaar}: referentie = som uit gemeente-telling, geen Totaaltelling)", file=sys.stderr)
+                    break
         if ref:
             totalen[soort + str(jaar)] = ref
         print(f"   -> {len(rows)} stembureaus, VVD={tv}, geldig={tg}, {100*tv/tg:.1f}% · {len(kand)} VVD-kandidaten", file=sys.stderr)

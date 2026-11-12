@@ -143,9 +143,13 @@ for e in sorted(som):
     print(f"  {e}: VVD {som[e]['vvd']}/{ref['vvd']} · geldig {som[e]['geldig']}/{ref['geldig']}  {'OK' if ok else '!! AFWIJKING'}",
           file=sys.stderr)
 
+# #22: alleen verkiezingen mét referentie zijn echt geverifieerd; de rest is "overgeslagen"
+geverifieerd = sorted(e for e in som if e in totalen)
 meta = {"bijgewerkt": datetime.date.today().isoformat(),
         "verkiezingen": sorted(som),
-        "controle": "ok" if fouten == 0 else f"{fouten} afwijking(en)"}
+        "geverifieerd": geverifieerd,
+        "controle": (f"ok ({len(geverifieerd)}/{len(som)} geverifieerd)" if fouten == 0 and geverifieerd
+                     else f"{fouten} afwijking(en)")}
 with open(ROOT + "/data/meta.js", "w") as f:
     f.write(HEADER + "const META = " + json.dumps(meta, ensure_ascii=False) + ";\n")
 if fouten:

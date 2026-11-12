@@ -121,14 +121,18 @@ meta["verkiezingen"] = sorted(set(meta["verkiezingen"]) | {eid})
 totalen = json.load(open("/tmp/totalen.json")) if os.path.exists("/tmp/totalen.json") else {}
 ref = totalen.get(eid)
 som_v = sum(r["vvd"] for r in nieuw); som_g = sum(r["geldig"] for r in nieuw)
+geverifieerd = set(meta.get("geverifieerd", []))
 if ref:
     ok = som_v == ref["vvd"] and som_g == ref["geldig"]
     print(f"integriteitscheck {eid}: VVD {som_v}/{ref['vvd']} · geldig {som_g}/{ref['geldig']}  "
           f"{'OK' if ok else '!! AFWIJKING'}", file=sys.stderr)
     if not ok:
         sys.exit("INTEGRITEITSCHECK MISLUKT — niet geschreven.")
+    geverifieerd.add(eid)
 else:
     print(f"integriteitscheck {eid}: geen referentie (overgeslagen)", file=sys.stderr)
+meta["geverifieerd"] = sorted(geverifieerd)
+meta["controle"] = f"ok ({len(geverifieerd)}/{len(meta['verkiezingen'])} geverifieerd)"
 with open(ROOT + "/data/meta.js", "w") as f:
     f.write(HEADER + "const META = " + json.dumps(meta, ensure_ascii=False) + ";\n")
 

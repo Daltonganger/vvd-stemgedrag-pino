@@ -93,20 +93,13 @@ Een volledig-scherm "verhaalmodus" die het bestuur stap voor stap meeneemt: (1) 
 (2) waar verliezen we, (3) lokale meerwaarde, (4) trend over de jaren. Grote cijfers, één boodschap per
 scherm, navigeren met pijltjestoetsen. Maakt van de tool een kant-en-klare pitch.
 
-### #13-rest. EP2019 binnenhalen (wacht op bron-host)
-**Impact: hoog · Werk: S** — code is klaar
-EP2024 + GR2014 staan erin. Alleen **EP2019** ontbreekt nog: enige schone per-stembureau EML voor
-Pijnacker staat op de dode legacy-host `data.overheid.nl/OpenDataSets/verkiezingen/`. Geen alternatief
-gevonden (Internet Archive heeft geen snapshot; data.overheid.nl-mirrors bevatten enkel ándere
-gemeenten; Kiesraad verkiezingsuitslagen.nl geeft de data achter een XHR die voor Pijnacker leeg/500
-teruggeeft). Retry-loop pollt de host; zodra 200: `python3 scripts/harvest.py` +
-`python3 scripts/merge_election.py EP 2019`.
+### #13-rest. EP2019 binnenhalen — GEDAAN (#19)
+EP2019 stond wél gewoon op data.overheid.nl, alleen niet op de dode legacy-host
+(`/OpenDataSets/`) waar harvest.py naar keek; directe ZIP-URL in `DIRECT_ZIPS` lost het op.
 
-### #16. SRI-integrity-hashes op vendor-scripts
-**Impact: laag · Werk: S**
-Als de map ooit extern gehost wordt (zie #17), voorkomt een `integrity="sha384-…"` + `crossorigin`
-op `vendor/leaflet.js`, `chart.umd.min.js` e.d. dat een onopgemerkte wijziging van die bestanden
-ongemerkt meedraait. Hashes genereren met `openssl dgst -sha384 -binary <file> | openssl base64 -A`
+### #16. SRI-integrity-hashes op vendor-scripts — GEDAAN
+`index.html` heeft `integrity="sha384-…"` + `crossorigin="anonymous"` op `vendor/leaflet.css`,
+`vendor/leaflet.js` en `vendor/chart.umd.min.js`.gemerkt meedraait. Hashes genereren met `openssl dgst -sha384 -binary <file> | openssl base64 -A`
 en in `index.html` zetten. (Lokaal/offline minder kritisch, maar netjes en gratis bij hosting.)
 
 ### #17. Online hosten via GitHub Pages

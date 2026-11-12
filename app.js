@@ -647,7 +647,12 @@ function herteken() { vulPartijKeuze(); vulKandidaatKeuze(); tekenKaart(); teken
 (function init() {
   const sv = document.getElementById("sel-verkiezing");
   sv.innerHTML = ELECTIONS.map((e) => `<option value="${e.id}" ${e.id === huidige ? "selected" : ""}>${e.label}</option>`).join("");
-  sv.addEventListener("change", () => { huidige = sv.value; if (metric === "perc" || metric === "afwijking" || metric === "winst") sort.key = sort.key in NIVEAU ? sort.key : huidige; herteken(); tekenGrafiek(); });
+  sv.addEventListener("change", () => {
+    huidige = sv.value;
+    // bij een verkiezing-gebaseerde sorteerkolom: naar de nieuwe verkiezing; naam/meerwaarde/positie blijven
+    if (sort.key !== "naam" && sort.key !== "meerwaarde" && sort.key !== "positie") sort.key = huidige;
+    herteken();
+  });
   document.getElementById("sel-metric").addEventListener("change", (e) => { metric = e.target.value; toonKeuzes(); tekenKaart(); });
   document.getElementById("sel-partij").addEventListener("change", (e) => { vergelijkPartij = e.target.value; tekenKaart(); });
   document.getElementById("sel-kandidaat").addEventListener("change", (e) => { kiesKandidaat = e.target.value; tekenKaart(); tekenKandidaten(); });
@@ -672,9 +677,10 @@ function herteken() { vulPartijKeuze(); vulKandidaatKeuze(); tekenKaart(); teken
     });
   }
   if (typeof META !== "undefined") {
-    const ok = META.controle === "ok";
+    const nG = (META.geverifieerd || []).length, nT = (META.verkiezingen || []).length;
+    const ok = /^ok/.test(META.controle || "");
     document.getElementById("meta-info").innerHTML =
-      ` · Laatst bijgewerkt: ${META.bijgewerkt} · integriteitscheck: <b style="color:${ok ? "#1e8449" : "#c0392b"}">${ok ? "✓ klopt met officiële totalen" : META.controle}</b>`;
+      ` · Laatst bijgewerkt: ${META.bijgewerkt} · integriteitscheck: <b style="color:${ok ? "#1e8449" : "#c0392b"}">${ok ? `✓ ${nG}/${nT} verified tegen officiële totalen` : META.controle}</b>`;
   }
   herteken();
 })();

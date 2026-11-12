@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Maakt de site volledig offline-bruikbaar (presentatie-proof):
 - vendor Leaflet + Chart.js naar /vendor
-- download OpenStreetMap-tegels voor Pijnacker-Nootdorp naar /tiles (z12-15)
-Eenmalig draaien; daarna werkt de kaart zonder internet."""
-import os, math, time, urllib.request, sys
+De kaart zelf is een offline VECTOR-basiskaart (data/basemap.js via scripts/fetch_basemap.py)
+i.p.v. rastertegels — OSM-tegels mogen niet in bulk gedownload worden.
+Eenmalig draaien; daarna werkt de site zonder internet."""
+import os, urllib.request, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UA = "VVD-PijnackerNootdorp-offline-map/1.0 (interne presentatie)"
@@ -30,4 +31,3 @@ for dest, url in LIBS.items():
 
 print()
 print("Libraries gevendord. Voor de offline KAART: draai scripts/fetch_basemap.py")
-print("(OSM-rastertegels mogen niet in bulk; we gebruiken een vector-basiskaart via Overpass).")
