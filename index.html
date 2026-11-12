@@ -50,6 +50,13 @@
         <button type="button" data-w="stippen">Stippen</button>
       </span>
     </label>
+    <label class="actie-knoppen">Acties
+      <span class="seg">
+        <button type="button" id="btn-presentatie" title="Volledig-scherm verhaalmodus (pijltjestoetsen)">▶ Presentatie</button>
+        <button type="button" id="btn-png" title="Exporteer de kaart als PNG-afbeelding">⭳ Kaart PNG</button>
+        <button type="button" id="btn-link" title="Kopieer een deelbare link naar deze weergave">🔗 Link</button>
+      </span>
+    </label>
     <fieldset id="niveau-filter">
       <legend>Toon niveaus</legend>
       <label><input type="checkbox" value="EP" checked> Europees</label>
@@ -130,6 +137,18 @@
 <footer class="credit">
   Gemaakt door <a href="https://www.rubenbeuker.nl" target="_blank" rel="noopener">Ruben Beuker</a> · © 2026 · www.rubenbeuker.nl
 </footer>
+
+<!-- #11: presentatiemodus — volledig-scherm overlay, 4 schermen, pijltjestoetsen -->
+<div id="presentatie" class="pres" hidden role="dialog" aria-modal="true" aria-label="Presentatiemodus">
+  <div class="pres-slide" id="pres-slide"></div>
+  <div class="pres-nav">
+    <button type="button" id="pres-prev" aria-label="Vorig scherm">←</button>
+    <span id="pres-teller">1 / 4</span>
+    <button type="button" id="pres-next" aria-label="Volgend scherm">→</button>
+    <button type="button" id="pres-sluit" aria-label="Sluit presentatiemodus (Esc)">✕ Sluit</button>
+  </div>
+</div>
+<div id="live" class="visually-hidden" aria-live="polite"></div>
 
 <script src="vendor/leaflet.js" integrity="sha384-MqBTuoPK56hXSXu+CBGieY4+YmVJ9nPtRptTkiuNSz3t1YCzASShUH1ex3Rgcf2u" crossorigin="anonymous"></script>
 <script src="vendor/chart.umd.min.js" integrity="sha384-gfXUqR5vZoGaSWfnt7sdtbok7tYQpPWuRu+iOZgEc+cZmK90gnHyalBH/o7aTyiw" crossorigin="anonymous"></script>

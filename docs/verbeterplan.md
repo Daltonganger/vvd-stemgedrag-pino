@@ -55,6 +55,27 @@ Per open punt: **impact**, **werk** (S/M/L) en concreet wat te doen.
 
 ## Open
 
+### #20. CSV-export uitgebreid — GEDAAN
+Per verkiezing `positie(L-R)` + `dekking%` in de wide export (122 kolommen) en een nieuwe
+long-format export (`downloadCsvPartijen()` → `vvd-stemgedrag-partijen-lang.csv`, 6426 regels:
+stembureau × verkiezing × partij). Movers nu RdBu `#2166ac`/`#b2182b` (kleurenblind-veilig,
+matcht de divergente kaart).
+
+### #21. Auto cache-buster + kandidaten alle zip-delen — GEDAAN
+`index.html` laadt `style.css`/`app.js` met `?v=META.bijgewerkt` (geen handmatige bump).
+`harvest.py` scant álle zip-delen op de Kandidatenlijst → `kandidaten.js` nu 701 VVD-namen
+over 16/17 verkiezingen (TK2017 CSV-bron heeft geen kandidaatkolommen).
+
+### #22. Eerlijke integriteitscheck — GEDAAN
+Referentie-totaal wordt uit de gemeente-telling zelf afgeleid (`totaal_from_telling`)
+voor zips zonder aparte Totaaltelling → **16/17 verkiezingen geverifieerd**; footer toont
+`✓ 16/17 verified tegen officiële totalen`.
+
+### #23. Alle stemlocaties handmatig gelokaliseerd — GEDAAN
+`scripts/geocode_handmatig.py`: 13 locaties met handmatig geverifieerde adressen
+(officiële PV-PDFs, gemeente-site, SBI-register, AD) → **58/58 locaties op de kaart,
+0 zonder coördinaat, 0 buiten de gemeentegrens**.
+
 ### #19. Oudere verkiezingen + stemverdeling in popup — GEDAAN
 **17 verkiezingen** nu in de data: EP2009/2014/2019/2024, TK2010/2012/2017/2021/2023/2025,
 PS2015/2019/2023, GR2014/2018/2022/2026. `harvest.py` heeft directe ZIP-URLs
@@ -77,21 +98,22 @@ en zijpaneel met per-niveau- en alles-samen-overzicht. Lokale partijen zonder sc
 tellen niet mee; dekking (% stemmen mét score) wordt overal getoond
 (bv. GR2026 ≈ 65%, TK/EP ≈ 98%).
 
-### #8. Kleurenblind-veilig + toegankelijkheid
-**Impact: middel · Werk: S**
-Rood/groen (winst/verlies) is lastig voor ~8% van de mannen. Voeg patronen/cijferlabels toe, maak
-de tabel toetsenbord-navigeerbaar en zet ARIA-labels. Lage moeite, breder bruikbaar.
+### #8. Kleurenblind-veilig + toegankelijkheid — GEDAAN
+Divergente kaartvlakken/stippen krijgen een SVG-patroon (stijgende vs. dalende strepen) bovenop
+de RdBu-kleur — kleur én vorm geven de richting aan, ook in grijswaarden/print. Tabel al
+toetsenbord-navigeerbaar (Enter/Space op koppen en rijen), ARIA-labels op kaart/tabel,
+`aria-live`-regio voor schermlezer-meldingen, focus-terugkeer bij presentatiemodus.
 
-### #9. Export naar PDF/PNG + deelbare link
-**Impact: middel · Werk: M**
-Knop "exporteer kaart/grafiek als afbeelding" en een print-nette PDF-handout. Plus een permalink
-die de gekozen verkiezing/kaartweergave bewaart — handig om vooraf rond te sturen.
+### #9. PNG-export + deelbare link — GEDAAN
+`exporteerPng()` tekent de kaart zelf op een canvas (basemap + verkiezingsvlakken incl. patronen
++ titelbalk met verkiezing/metric/datum) → download als `vvd-kaart-<verkiezing>-<metric>.png`.
+Permalink: URL-hash `#v=..&m=..&w=..&sb=..` wordt bij elke wijziging meege wrote (`schrijfHash`)
+en bij laden hersteld (`leesHash`); knop 🔗 kopieert de link naar het klembord.
 
-### #11. Presentatiemodus / verhaallijn
-**Impact: middel · Werk: M**
-Een volledig-scherm "verhaalmodus" die het bestuur stap voor stap meeneemt: (1) waar is de VVD sterk,
-(2) waar verliezen we, (3) lokale meerwaarde, (4) trend over de jaren. Grote cijfers, één boodschap per
-scherm, navigeren met pijltjestoetsen. Maakt van de tool een kant-en-klare pitch.
+### #11. Presentatiemodus — GEDAAN
+Volledig-scherm overlay (knop ▶ Presentatie) met 4 schermen: (1) waar sterk (gemiddelde + top-3),
+(2) waar verliezen we (grootste dalers t.o.v. vorige keer), (3) lokale meerwaarde (top-3), (4) positie
+& trend per niveau. Pijltjestoetsen/PgUp/PgDn/Esc, focus-terugkeer, aria-live melding per scherm.
 
 ### #13-rest. EP2019 binnenhalen — GEDAAN (#19)
 EP2019 stond wél gewoon op data.overheid.nl, alleen niet op de dode legacy-host
@@ -99,8 +121,7 @@ EP2019 stond wél gewoon op data.overheid.nl, alleen niet op de dode legacy-host
 
 ### #16. SRI-integrity-hashes op vendor-scripts — GEDAAN
 `index.html` heeft `integrity="sha384-…"` + `crossorigin="anonymous"` op `vendor/leaflet.css`,
-`vendor/leaflet.js` en `vendor/chart.umd.min.js`.gemerkt meedraait. Hashes genereren met `openssl dgst -sha384 -binary <file> | openssl base64 -A`
-en in `index.html` zetten. (Lokaal/offline minder kritisch, maar netjes en gratis bij hosting.)
+`vendor/leaflet.js` en `vendor/chart.umd.min.js`.
 
 ### #17. Online hosten via GitHub Pages
 **Impact: middel · Werk: S**
@@ -118,6 +139,5 @@ een subpad. Eventueel later een eigen (sub)domein koppelen.
 ---
 
 ## Aanbevolen volgorde
-**#8 (toegankelijkheid)** als snelle win, **#17 (hosten)** zodra je het wilt delen — met **#16 (SRI)**
-erbij. **#13-rest (EP2019 + GR2014)** afmaken zodra de bron-host weer leeft. **#11
-(presentatiemodus)** is de mooie afronding als de inhoud staat.
+Alleen **#17 (GitHub Pages)** staat nog open: zodra PR #1 gemerged is, Settings → Pages →
+`main` / root aanzetten; de site is dan live op `https://<gebruiker>.github.io/<repo>/`.

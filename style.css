@@ -205,7 +205,39 @@ tr.mobiel td:first-child::after{content:" ⨯ niet op kaart";color:#b00;font-siz
   .detail-toggle{display:block;margin:.4rem 0 0}
 }
 @media print{
-  .controls,#btn-csv,.hint{display:none}
+  .controls,#btn-csv,#btn-csv-partijen,.hint,.pres{display:none}
   body{background:#fff;font-size:11px}
   .panel{break-inside:avoid}
 }
+
+/* ---- #8: toegankelijkheid ---- */
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* #8: divergente vlakken krijgen een patroon zodat kleur én vorm de richting aangeven
+   (werkt ook in grijswaarden/print). Positieve waarde = stijgende strepen, negatief = dalend. */
+.patroon-pos{fill:url(#patroon-pos)!important}
+.patroon-neg{fill:url(#patroon-neg)!important}
+.patroon-pos-stip{stroke:url(#patroon-pos)}
+.patroon-neg-stip{stroke:url(#patroon-neg)}
+
+/* ---- #9: actie-knoppen in de topbar ---- */
+.actie-knoppen .seg button{cursor:pointer}
+
+/* ---- #11: presentatiemodus ---- */
+.pres{position:fixed;inset:0;z-index:2000;background:var(--blauw);color:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem}
+.pres[hidden]{display:none}
+.pres-slide{max-width:52rem}
+.pres-slide .pres-kicker{font-size:1rem;text-transform:uppercase;letter-spacing:2px;color:var(--oranje);font-weight:700;margin-bottom:.6rem}
+.pres-slide .pres-big{font-size:clamp(2.6rem,8vw,5.5rem);font-weight:800;line-height:1.05;margin:.2rem 0 .8rem}
+.pres-slide .pres-sub{font-size:clamp(1rem,2.6vw,1.4rem);color:#dfe4ff;max-width:40rem;margin:0 auto}
+.pres-slide .pres-lijst{margin:1.2rem auto 0;text-align:left;max-width:34rem;font-size:clamp(.95rem,2vw,1.2rem)}
+.pres-slide .pres-lijst li{margin:.35rem 0}
+.pres-slide .pres-lijst b{color:var(--oranje)}
+.pres-nav{position:absolute;bottom:1.4rem;display:flex;align-items:center;gap:1.2rem}
+.pres-nav button{background:#fff;color:var(--blauw);border:0;border-radius:6px;padding:.5rem 1rem;
+  font:inherit;font-weight:700;cursor:pointer;font-size:1rem}
+.pres-nav button:hover{background:var(--oranje);color:#fff}
+.pres-nav #pres-sluit{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5)}
+.pres-nav #pres-sluit:hover{background:rgba(255,255,255,.15)}
+#pres-teller{font-size:.85rem;color:#dfe4ff}
+body.pres-open{overflow:hidden}
