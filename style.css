@@ -129,12 +129,13 @@ main{display:grid;grid-template-columns:1fr 22rem;gap:1rem;padding:1rem;align-it
 
 /* ---- stijgers & dalers (#5) ---- */
 .moverkop{font-size:.74rem;font-weight:700;margin:.5rem 0 .15rem}
-.moverkop.up{color:#1e8449}
-.moverkop.down{color:#c0392b}
+/* #8: winst/verlies in RdBu (zelfde als de kaart) — kleurenblind-veilig; ▲▼ is de vorm, niet de kleur */
+.moverkop.up{color:#2166ac}
+.moverkop.down{color:#b2182b}
 .moverrow{display:flex;justify-content:space-between;gap:.5rem;font-size:.82rem;padding:.12rem 0;cursor:pointer}
 .moverrow:hover{color:var(--blauw)}
-.moverrow b.up{color:#1e8449}
-.moverrow b.down{color:#c0392b}
+.moverrow b.up{color:#2166ac}
+.moverrow b.down{color:#b2182b}
 
 /* ---- kern-labels op de kaart ---- */
 .kernlabel.leaflet-tooltip{background:none;border:0;box-shadow:none;color:var(--blauw);font-weight:800;font-size:1rem;
@@ -154,8 +155,9 @@ main{display:grid;grid-template-columns:1fr 22rem;gap:1rem;padding:1rem;align-it
 .table-panel{margin:0 1rem 1.5rem}
 .table-head{display:flex;justify-content:space-between;align-items:center;padding:.8rem 1rem}
 .table-head h2{font-size:1rem;color:var(--blauw)}
-#btn-csv{background:var(--blauw);color:#fff;border:0;border-radius:5px;padding:.45rem .8rem;cursor:pointer;font-size:.85rem}
-#btn-csv:hover{background:var(--blauw-donker)}
+#btn-csv,#btn-csv-partijen{background:var(--blauw);color:#fff;border:0;border-radius:5px;padding:.45rem .8rem;cursor:pointer;font-size:.85rem}
+#btn-csv:hover,#btn-csv-partijen:hover{background:var(--blauw-donker)}
+.csv-knoppen{display:inline-flex;gap:.5rem}
 .table-wrap{overflow-x:auto}
 table{border-collapse:collapse;width:100%;font-size:.82rem}
 th,td{padding:.4rem .55rem;text-align:right;white-space:nowrap;border-bottom:1px solid var(--lijn)}

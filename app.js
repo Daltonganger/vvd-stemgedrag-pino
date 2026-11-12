@@ -579,23 +579,46 @@ function selecteer(sb) {
 }
 
 /* ---------------- CSV ---------------- */
+const csvCell = (c) => `"${String(c).replace(/"/g, '""')}"`;
+const csvBlob = (rows, naam) => {
+  const csv = rows.map((r) => r.map(csvCell).join(";")).join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
+  a.download = naam; a.click();
+};
+// breed formaat: per stembureau een regel, per verkiezing VVD/geldig/%/uitgebracht/grootste/positie/dekking
 function downloadCsv() {
   const els = ELECTIONS;
   const head = ["Stembureau", "Postcode",
-    ...els.flatMap((e) => [e.label + " VVD", e.label + " geldig", e.label + " %", e.label + " uitgebracht", e.label + " grootste partij"]),
+    ...els.flatMap((e) => [e.label + " VVD", e.label + " geldig", e.label + " %", e.label + " uitgebracht",
+      e.label + " grootste partij", e.label + " positie(L-R)", e.label + " dekking%"]),
     "Lokale meerwaarde (pp)"];
   const rows = STEMBUREAUS.map((s) => {
     const vals = els.flatMap((e) => {
       const u = getU(s.id, e.id);
-      return u ? [u.vvd, u.geldig, pct(u).toFixed(1), u.uitgebracht || "", winnaar(s.id, e.id) || ""] : ["", "", "", "", ""];
+      if (!u) return ["", "", "", "", "", "", ""];
+      const p = positie(s.id, e.id);
+      return [u.vvd, u.geldig, pct(u).toFixed(1), u.uitgebracht || "", winnaar(s.id, e.id) || "",
+        p ? p.score.toFixed(2) : "", p ? p.dekking.toFixed(0) : ""];
     });
     const mw = meerwaarde(s.id);
     return [s.naam, s.postcode, ...vals, mw == null ? "" : mw.toFixed(1)];
   });
-  const csv = [head, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\r\n");
-  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob); a.download = "vvd-stemgedrag-pijnacker-nootdorp.csv"; a.click();
+  csvBlob([head, ...rows], "vvd-stemgedrag-pijnacker-nootdorp.csv");
+}
+// lang formaat: per stembureau × verkiezing × partij een regel (handig voor pivots in Excel)
+function downloadCsvPartijen() {
+  const head = ["Stembureau", "Verkiezing", "Partij", "Stemmen", "% van geldig", "Links-rechts (CHES 0-10)"];
+  const rows = [head];
+  for (const s of STEMBUREAUS) for (const e of ELECTIONS) {
+    const u = getU(s.id, e.id);
+    if (!u || !u.partijen) continue;
+    for (const [naam, v] of u.partijen) {
+      const lr = lrVan(naam);
+      rows.push([s.naam, e.label, naam, v, (100 * v / u.geldig).toFixed(2), lr != null ? lr : ""]);
+    }
+  }
+  csvBlob(rows, "vvd-stemgedrag-partijen-lang.csv");
 }
 
 /* ---------------- init ---------------- */
@@ -639,6 +662,7 @@ function herteken() { vulPartijKeuze(); vulKandidaatKeuze(); tekenKaart(); teken
     tekenTabel();
   }));
   document.getElementById("btn-csv").addEventListener("click", downloadCsv);
+  document.getElementById("btn-csv-partijen").addEventListener("click", downloadCsvPartijen);
   const selDetail = document.getElementById("sel-detail");
   if (selDetail) {                                  // #15 — kaartdetail (vol/licht) onthouden
     selDetail.value = localStorage.getItem("kaartdetail") || "auto";
